@@ -1,0 +1,22 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(dir)",
+      "Bash(dir:*)",
+      "Bash(mkdir:*)",
+      "Bash(move:*)",
+      "Bash(move \"docs\\events\\api.md\" \"docs\\features\\api\\events.md\")",
+      "Bash(move \"docs\\events\\audit.md\" \"docs\\features\\audit\\events.md\")",
+      "Bash(move \"docs\\events\\authentication.md\" \"docs\\features\\authentication\\events.md\")",
+      "Bash(move \"docs\\events\\content.md\" \"docs\\features\\content\\events.md\")",
+      "Bash(move \"docs\\events\\media.md\" \"docs\\features\\media\\events.md\")",
+      "Bash(move \"docs\\events\\role-management.md\" \"docs\\features\\role-management\\events.md\")",
+      "Bash(move \"docs\\events\\system.md\" \"docs\\features\\system\\events.md\")",
+      "Bash(move \"docs\\events\\user-management.md\" \"docs\\features\\user-management\\events.md\")",
+      "Bash(move \"docs\\events\\workflow.md\" \"docs\\features\\workflow\\events.md\")",
+      "Bash(mv:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
