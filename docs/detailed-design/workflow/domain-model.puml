@@ -1,0 +1,41 @@
+@startuml Workflow Domain Model
+
+class Workflow <<AggregateRoot>> {
+    +Guid WorkflowId
+    +Guid ContentId
+    +Guid AccountId
+    +string WorkflowType
+    +WorkflowStatus Status
+    +Guid InitiatedBy
+    +DateTime StartedAt
+    +DateTime? CompletedAt
+    --
+    +Start(): void
+    +CompleteStage(): void
+    +Approve(): void
+    +Reject(): void
+    +Reassign(): void
+    +Complete(): void
+    +Cancel(): void
+}
+
+class WorkflowStage <<Entity>> {
+    +Guid StageId
+    +Guid WorkflowId
+    +string StageName
+    +int StageOrder
+    +Guid AssignedTo
+    +StageStatus Status
+}
+
+enum WorkflowStatus {
+    Started
+    InProgress
+    Completed
+    Cancelled
+    Rejected
+}
+
+Workflow "1" *-- "many" WorkflowStage
+
+@enduml
