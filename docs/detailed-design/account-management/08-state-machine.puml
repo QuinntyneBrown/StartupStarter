@@ -1,0 +1,96 @@
+@startuml
+title Account Management - Account Lifecycle State Machine
+
+hide empty description
+
+[*] --> Active : AccountCreated
+
+state Active {
+    state "Active Account" as ActiveState
+    ActiveState : Can perform all operations
+    ActiveState : Users can access
+    ActiveState : Profiles active
+    ActiveState : Billing active
+    
+    ActiveState --> ActiveState : AccountUpdated
+    ActiveState --> ActiveState : AccountSettingsUpdated
+    ActiveState --> ActiveState : AccountProfileAdded
+    ActiveState --> ActiveState : AccountProfileRemoved
+    ActiveState --> ActiveState : AccountSubscriptionChanged
+    ActiveState --> ActiveState : AccountOwnerChanged
+}
+
+state Suspended {
+    state "Suspended Account" as SuspendedState
+    SuspendedState : Limited operations
+    SuspendedState : Users cannot access
+    SuspendedState : Profiles suspended
+    SuspendedState : Billing may continue
+}
+
+state Deleted {
+    state "Deleted Account" as DeletedState
+    DeletedState : No operations allowed
+    DeletedState : Data archived or removed
+    DeletedState : Billing cancelled
+    DeletedState : Cannot be reactivated
+}
+
+Active --> Suspended : AccountSuspended
+Suspended --> Active : AccountReactivated
+Active --> Deleted : AccountDeleted
+Suspended --> Deleted : AccountDeleted
+
+Deleted --> [*]
+
+note right of Active
+    Business Rules in Active State:
+    - Can add/remove profiles
+    - Can change subscription
+    - Can transfer ownership
+    - Can update settings
+    - All features enabled
+end note
+
+note right of Suspended
+    Business Rules in Suspended State:
+    - Cannot add profiles
+    - Cannot change subscription
+    - Limited to admin actions
+    - Reactivation requires approval
+    - Automatic expiry optional
+    
+    Suspension Reasons:
+    - Non-payment
+    - Policy violation
+    - Security concern
+    - Administrative action
+    - Temporary hold
+end note
+
+note right of Deleted
+    Business Rules in Deleted State:
+    - Terminal state
+    - No operations allowed
+    
+    Deletion Types:
+    - Soft Delete: Data retained
+    - Hard Delete: Data purged
+    
+    Cascade Effects:
+    - Delete or archive profiles
+    - Cancel subscriptions
+    - Notify users
+    - Audit log retention
+end note
+
+note as N1
+    Invariants Enforced:
+    1. Deleted accounts cannot transition
+    2. Suspension requires reason
+    3. Reactivation requires authorization
+    4. State transitions logged as events
+    5. Optimistic concurrency on transitions
+end note
+
+@enduml

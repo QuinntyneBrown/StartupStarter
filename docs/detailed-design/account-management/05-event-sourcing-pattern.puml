@@ -1,0 +1,112 @@
+@startuml
+title Account Management - Event Sourcing Pattern
+
+database "Event Store" as ES {
+    frame "Account Stream: account-123" {
+        card "Version 1" as E1
+        card "Version 2" as E2
+        card "Version 3" as E3
+        card "Version 4" as E4
+    }
+}
+
+note right of E1
+  AccountCreated
+  AccountId: account-123
+  AccountName: Acme Corp
+  AccountType: Enterprise
+  OwnerUserId: user-456
+  SubscriptionTier: Premium
+  Timestamp: 2024-01-15T10:00:00Z
+end note
+
+note right of E2
+  AccountSettingsUpdated
+  AccountId: account-123
+  SettingCategory: Billing
+  UpdatedSettings: {...}
+  Timestamp: 2024-01-16T14:30:00Z
+end note
+
+note right of E3
+  AccountSubscriptionChanged
+  AccountId: account-123
+  PreviousTier: Premium
+  NewTier: Enterprise
+  EffectiveDate: 2024-02-01
+  Timestamp: 2024-01-20T09:15:00Z
+end note
+
+note right of E4
+  AccountProfileAdded
+  AccountId: account-123
+  ProfileId: profile-789
+  ProfileName: Engineering
+  Timestamp: 2024-01-25T16:45:00Z
+end note
+
+package "Aggregate Reconstruction" {
+    component "Event Loader" as Loader
+    component "Account Aggregate" as Agg
+    
+    ES --> Loader : Load events for account-123
+    Loader -> Agg : Replay events in order
+    
+    note right of Agg
+        Rebuild State:
+        1. Create empty aggregate
+        2. Apply Event 1 (Created)
+        3. Apply Event 2 (Settings)
+        4. Apply Event 3 (Subscription)
+        5. Apply Event 4 (Profile)
+        
+        Result:
+        Current state at Version 4
+    end note
+}
+
+package "Snapshot Optimization" {
+    database "Snapshot Store" as SS
+    
+    note right of SS
+        Snapshot: account-123
+        Version: 3
+        State: {...full state...}
+        Timestamp: 2024-01-20T09:15:01Z
+        
+        Optimization:
+        Store snapshot at V3
+        Load snapshot + events > V3
+        Faster reconstruction
+        Configurable threshold
+    end note
+}
+
+package "New Command Processing" {
+    component "Command Handler" as CH
+    component "Updated Aggregate" as UA
+    
+    CH -> Agg : Load current state (V4)
+    CH -> UA : Execute command
+    UA -> UA : Validate and apply business rules
+    UA -> ES : Append new event (V5)
+    
+    note right of UA
+        Optimistic Concurrency:
+        Expected version: 4
+        New version: 5
+        Conflict if version mismatch
+    end note
+}
+
+note bottom of ES
+    Event Store Benefits:
+    Complete audit trail
+    Temporal queries
+    Event replay
+    Bug fix by replay
+    Business intelligence
+    Time travel debugging
+end note
+
+@enduml

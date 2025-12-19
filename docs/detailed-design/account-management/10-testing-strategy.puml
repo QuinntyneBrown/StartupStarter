@@ -1,0 +1,213 @@
+@startuml
+title Account Management - Testing Strategy (Test Pyramid)
+
+skinparam componentStyle rectangle
+
+package "Test Pyramid" {
+    
+    component "E2E Tests\n(50 tests)" as E2E {
+        == End-to-End / UI Tests ==
+        - Full user workflows
+        - API integration tests
+        - Cross-boundary scenarios
+        - Performance tests
+        ----
+        Tools:
+        - Playwright / Selenium
+        - Postman / REST Client
+        - JMeter / K6
+        ----
+        Examples:
+        - Create account, Add profile, Delete account
+        - Suspend account, Verify access denied
+        - Change subscription, Verify billing update
+    }
+    
+    component "Integration Tests\n(200 tests)" as Integration {
+        == Component Integration Tests ==
+        - Command handlers + Event Store
+        - Projections + Read DB
+        - Event publishing + Subscribers
+        - Repository tests
+        ----
+        Tools:
+        - xUnit / NUnit / MSTest
+        - Testcontainers (Docker)
+        - In-memory Event Store
+        - SQL Lite / Test DB
+        ----
+        Examples:
+        - CreateAccountHandler persists events
+        - Projection updates read model
+        - Event publisher sends to bus
+        - Repository CRUD operations
+    }
+    
+    component "Unit Tests\n(500+ tests)" as Unit {
+        == Domain Logic Tests ==
+        - Aggregate behavior
+        - Value object validation
+        - Domain event generation
+        - Business rule enforcement
+        - State transitions
+        ----
+        Tools:
+        - xUnit / NUnit / MSTest
+        - FluentAssertions
+        - AutoFixture / Bogus
+        - Moq / NSubstitute
+        ----
+        Examples:
+        - Account.Create() raises AccountCreated
+        - Account.Suspend() validates status
+        - Account.Delete() enforces invariants
+        - Value objects equality
+        - Business rule specifications
+    }
+}
+
+component "Contract Tests\n(30 contracts)" as Contract {
+    == API Contract Testing ==
+    - Provider-Consumer contracts
+    - Event schema validation
+    - API backward compatibility
+    ----
+    Tools:
+    - Pact
+    - Spring Cloud Contract
+    - Postman Contract Tests
+    ----
+    Examples:
+    - Query API contract
+    - Command API contract
+    - Domain event schemas
+    - Integration event contracts
+}
+
+package "Test Data Management" {
+    component "Test Builders" as Builders {
+        [AccountBuilder]
+        [AccountEventBuilder]
+        [TestDataFactory]
+    }
+    
+    component "Test Fixtures" as Fixtures {
+        [Common test scenarios]
+        [Shared test data]
+        [Event stream fixtures]
+    }
+    
+    component "Fakes and Mocks" as Fakes {
+        [InMemoryEventStore]
+        [FakeEventPublisher]
+        [TestReadRepository]
+    }
+}
+
+package "Specialized Testing" {
+    component "Behavior Tests\n(100 tests)" as BDD {
+        == Gherkin Scenarios ==
+        - Given-When-Then
+        - Living documentation
+        - Business readable
+        ----
+        Tools:
+        - SpecFlow / Cucumber
+        ----
+        Example:
+        Given an active account
+        When account is suspended
+        Then users cannot access
+        And billing is paused
+    }
+    
+    component "Property-Based Tests\n(20 properties)" as Property {
+        == Generative Testing ==
+        - Random input generation
+        - Invariant verification
+        - Edge case discovery
+        ----
+        Tools:
+        - FsCheck
+        - Hypothesis
+        ----
+        Example:
+        For any valid account state,
+        suspension should always
+        maintain data integrity
+    }
+    
+    component "Mutation Tests" as Mutation {
+        == Code Quality ==
+        - Verify test effectiveness
+        - Find weak tests
+        ----
+        Tools:
+        - Stryker.NET
+    }
+}
+
+note right of E2E
+    Characteristics:
+    - Slow (2-5 min each)
+    - Brittle
+    - Full system required
+    - Run in CI/CD pipeline
+    - Fewer in number
+    - High confidence
+end note
+
+note right of Integration
+    Characteristics:
+    - Medium speed (5-30 sec each)
+    - Test boundaries
+    - Use test doubles for external deps
+    - Docker containers
+    - Run frequently
+    - Good coverage
+end note
+
+note right of Unit
+    Characteristics:
+    - Fast (<100ms each)
+    - Isolated
+    - No external dependencies
+    - In-memory only
+    - Run on every build
+    - Massive coverage
+end note
+
+legend bottom
+    Testing Guidelines:
+    
+    Test Coverage Targets:
+    - Domain Layer: 95%+ (mostly unit tests)
+    - Application Layer: 85%+ (unit + integration)
+    - Infrastructure: 70%+ (integration tests)
+    
+    CI/CD Pipeline:
+    1. Unit tests (every commit) - <2 min
+    2. Integration tests (PR) - <10 min
+    3. Contract tests (PR) - <5 min
+    4. E2E tests (pre-deployment) - <20 min
+    
+    Test Isolation:
+    - Each test independent
+    - No shared state
+    - Parallel execution
+    - Fast feedback
+    
+    Event Sourcing Testing:
+    - Test event generation
+    - Test event replay
+    - Test projections
+    - Test idempotency
+    
+    MediatR v12.x Testing:
+    - Test handlers in isolation
+    - Mock ISender/IPublisher
+    - Test pipeline behaviors
+    - Verify notifications
+endlegend
+
+@enduml
