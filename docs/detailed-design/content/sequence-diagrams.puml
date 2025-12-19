@@ -1,0 +1,507 @@
+@startuml Content Management Sequence Diagrams
+
+!define FRONTEND_COLOR #E1F5FE
+!define API_COLOR #FFF9C4
+!define SERVICE_COLOR #F3E5F5
+!define REPOSITORY_COLOR #C8E6C9
+!define EVENT_COLOR #FFCCBC
+!define DB_COLOR #CFD8DC
+
+' ====================================================================
+' Create Content Flow
+' ====================================================================
+@startuml Create Content
+title Create Content - MediatR Command Flow
+
+actor "Content Editor" as Editor FRONTEND_COLOR
+participant "Angular UI" as UI FRONTEND_COLOR
+participant "API Gateway" as Gateway API_COLOR
+participant "Content Controller" as Controller API_COLOR
+participant "MediatR" as Mediator SERVICE_COLOR
+participant "CreateContentHandler" as Handler SERVICE_COLOR
+participant "IContentRepository" as Repo REPOSITORY_COLOR
+participant "DbContext" as DB DB_COLOR
+participant "IDomainEventDispatcher" as EventDispatcher EVENT_COLOR
+participant "SignalR Hub" as SignalR EVENT_COLOR
+
+Editor -> UI : Create Content
+activate UI
+
+UI -> Gateway : POST /api/content\n{title, body, contentType}
+activate Gateway
+note right: JWT Bearer Token\nfor authentication
+
+Gateway -> Controller : Route Request
+activate Controller
+
+Controller -> Mediator : Send(CreateContentCommand)
+activate Mediator
+
+Mediator -> Handler : Handle(CreateContentCommand)
+activate Handler
+
+Handler -> Handler : Validate Command
+note right: FluentValidation\nTitle required\nBody required
+
+Handler -> Repo : GetByIdAsync(accountId)
+activate Repo
+Repo -> DB : Query Account
+activate DB
+DB --> Repo : Account
+deactivate DB
+Repo --> Handler : Account
+deactivate Repo
+
+Handler -> Handler : Content.Create()
+note right: Domain entity\nraises ContentCreatedDomainEvent
+
+Handler -> Repo : AddAsync(content)
+activate Repo
+Repo -> DB : INSERT Content
+activate DB
+DB --> Repo : Success
+deactivate DB
+Repo --> Handler : Success
+deactivate Repo
+
+Handler -> Repo : SaveChangesAsync()
+activate Repo
+Repo -> DB : COMMIT Transaction
+activate DB
+DB --> Repo : Success
+deactivate DB
+Repo --> Handler : Success
+deactivate Repo
+
+Handler -> EventDispatcher : DispatchAsync(domainEvents)
+activate EventDispatcher
+note right: Publish domain events\nafter successful save
+
+EventDispatcher -> SignalR : Notify Subscribers\n(ContentCreated)
+activate SignalR
+SignalR --> EventDispatcher : Acknowledged
+deactivate SignalR
+
+EventDispatcher --> Handler : Complete
+deactivate EventDispatcher
+
+Handler --> Mediator : CreateContentResponse
+deactivate Handler
+
+Mediator --> Controller : Response
+deactivate Mediator
+
+Controller --> Gateway : 201 Created\n{contentId, status}
+deactivate Controller
+
+Gateway --> UI : Response
+deactivate Gateway
+
+UI --> Editor : Content Created Successfully
+deactivate UI
+
+@enduml
+
+' ====================================================================
+' Update Content Flow
+' ====================================================================
+@startuml Update Content
+title Update Content with Versioning
+
+actor "Content Editor" as Editor FRONTEND_COLOR
+participant "Angular UI" as UI FRONTEND_COLOR
+participant "API Gateway" as Gateway API_COLOR
+participant "Content Controller" as Controller API_COLOR
+participant "MediatR" as Mediator SERVICE_COLOR
+participant "UpdateContentHandler" as Handler SERVICE_COLOR
+participant "IContentRepository" as Repo REPOSITORY_COLOR
+participant "DbContext" as DB DB_COLOR
+participant "IDomainEventDispatcher" as EventDispatcher EVENT_COLOR
+participant "Azure Service Bus" as ServiceBus EVENT_COLOR
+
+Editor -> UI : Edit & Save Content
+activate UI
+
+UI -> Gateway : PUT /api/content/{id}
+activate Gateway
+
+Gateway -> Controller : Route Request
+activate Controller
+
+Controller -> Mediator : Send(UpdateContentCommand)
+activate Mediator
+
+Mediator -> Handler : Handle(UpdateContentCommand)
+activate Handler
+
+Handler -> Repo : GetByIdAsync(contentId)
+activate Repo
+Repo -> DB : SELECT Content\nFOR UPDATE
+activate DB
+DB --> Repo : Content
+deactivate DB
+Repo --> Handler : Content
+deactivate Repo
+
+Handler -> Handler : Check Concurrency\n(Version Number)
+note right: Optimistic Concurrency\nValidate version matches
+
+alt Version Mismatch
+    Handler --> Mediator : ConcurrencyException
+    Mediator --> Controller : 409 Conflict
+    Controller --> UI : Version Conflict
+else Version OK
+    Handler -> Handler : content.Update()
+    note right: Raises ContentUpdatedDomainEvent\nIncrements version
+
+    Handler -> Handler : CreateVersion Snapshot
+    note right: Save current state\nas ContentVersion
+
+    Handler -> Repo : UpdateAsync(content)
+    activate Repo
+    Repo -> DB : UPDATE Content
+    activate DB
+    DB --> Repo : Success
+    deactivate DB
+    Repo --> Handler : Success
+    deactivate Repo
+
+    Handler -> Repo : AddAsync(contentVersion)
+    activate Repo
+    Repo -> DB : INSERT ContentVersion
+    activate DB
+    DB --> Repo : Success
+    deactivate DB
+    Repo --> Handler : Success
+    deactivate Repo
+
+    Handler -> Repo : SaveChangesAsync()
+    activate Repo
+    Repo -> DB : COMMIT
+    activate DB
+    DB --> Repo : Success
+    deactivate DB
+    Repo --> Handler : Success
+    deactivate Repo
+
+    Handler -> EventDispatcher : DispatchAsync(domainEvents)
+    activate EventDispatcher
+
+    EventDispatcher -> ServiceBus : Publish\nContentUpdatedEvent
+    activate ServiceBus
+    note right: Async integration event\nfor downstream systems
+    ServiceBus --> EventDispatcher : Acknowledged
+    deactivate ServiceBus
+
+    EventDispatcher --> Handler : Complete
+    deactivate EventDispatcher
+
+    Handler --> Mediator : UpdateContentResponse
+    Mediator --> Controller : Response
+    Controller --> Gateway : 200 OK
+    Gateway --> UI : Success
+    UI --> Editor : Content Updated
+end
+
+deactivate Handler
+deactivate Mediator
+deactivate Controller
+deactivate Gateway
+deactivate UI
+
+@enduml
+
+' ====================================================================
+' Publish Content Flow
+' ====================================================================
+@startuml Publish Content
+title Publish Content Workflow
+
+actor "Content Editor" as Editor FRONTEND_COLOR
+participant "Angular UI" as UI FRONTEND_COLOR
+participant "Content Controller" as Controller API_COLOR
+participant "MediatR" as Mediator SERVICE_COLOR
+participant "PublishContentHandler" as Handler SERVICE_COLOR
+participant "IContentRepository" as Repo REPOSITORY_COLOR
+participant "DbContext" as DB DB_COLOR
+participant "IDomainEventDispatcher" as EventDispatcher EVENT_COLOR
+participant "Azure Service Bus" as ServiceBus EVENT_COLOR
+participant "SignalR Hub" as SignalR EVENT_COLOR
+
+Editor -> UI : Click Publish
+activate UI
+
+UI -> Controller : POST /api/content/{id}/publish
+activate Controller
+
+Controller -> Mediator : Send(PublishContentCommand)
+activate Mediator
+
+Mediator -> Handler : Handle(PublishContentCommand)
+activate Handler
+
+Handler -> Repo : GetByIdAsync(contentId)
+activate Repo
+Repo -> DB : SELECT Content
+activate DB
+DB --> Repo : Content
+deactivate DB
+Repo --> Handler : Content
+deactivate Repo
+
+Handler -> Handler : Validate Can Publish
+note right: Check status\nValidate content complete
+
+alt Cannot Publish
+    Handler --> Mediator : ValidationException
+    Mediator --> Controller : 400 Bad Request
+else Can Publish
+    Handler -> Handler : content.Publish()
+    note right: Set Status = Published\nRaises ContentPublishedDomainEvent
+
+    Handler -> Repo : UpdateAsync(content)
+    activate Repo
+    Repo -> DB : UPDATE Content\nSET Status = Published
+    activate DB
+    DB --> Repo : Success
+    deactivate DB
+    Repo --> Handler : Success
+    deactivate Repo
+
+    Handler -> Repo : SaveChangesAsync()
+    activate Repo
+    Repo -> DB : COMMIT
+    activate DB
+    DB --> Repo : Success
+    deactivate DB
+    Repo --> Handler : Success
+    deactivate Repo
+
+    Handler -> EventDispatcher : DispatchAsync(domainEvents)
+    activate EventDispatcher
+
+    par Parallel Event Processing
+        EventDispatcher -> ServiceBus : Publish\nContentPublishedEvent
+        activate ServiceBus
+        note right: Triggers downstream workflows:\n- Cache invalidation\n- CDN purge\n- Webhook notifications
+        ServiceBus --> EventDispatcher : Acknowledged
+        deactivate ServiceBus
+    and
+        EventDispatcher -> SignalR : Notify Real-time\nContentPublished
+        activate SignalR
+        note right: Real-time notification\nto connected clients
+        SignalR --> EventDispatcher : Acknowledged
+        deactivate SignalR
+    end
+
+    EventDispatcher --> Handler : Complete
+    deactivate EventDispatcher
+
+    Handler --> Mediator : PublishContentResponse
+    Mediator --> Controller : Response
+    Controller --> UI : 200 OK
+    UI --> Editor : Content Published!
+end
+
+deactivate Handler
+deactivate Mediator
+deactivate Controller
+deactivate UI
+
+@enduml
+
+' ====================================================================
+' Restore Version Flow
+' ====================================================================
+@startuml Restore Version
+title Restore Previous Content Version
+
+actor "Content Editor" as Editor FRONTEND_COLOR
+participant "Angular UI" as UI FRONTEND_COLOR
+participant "Content Controller" as Controller API_COLOR
+participant "MediatR" as Mediator SERVICE_COLOR
+participant "RestoreVersionHandler" as Handler SERVICE_COLOR
+participant "IContentRepository" as Repo REPOSITORY_COLOR
+participant "DbContext" as DB DB_COLOR
+
+Editor -> UI : View Version History\nSelect Version to Restore
+activate UI
+
+UI -> Controller : POST /api/content/{id}/restore-version\n{versionNumber}
+activate Controller
+
+Controller -> Mediator : Send(RestoreContentVersionCommand)
+activate Mediator
+
+Mediator -> Handler : Handle(RestoreContentVersionCommand)
+activate Handler
+
+Handler -> Repo : GetByIdAsync(contentId)
+activate Repo
+Repo -> DB : SELECT Content
+activate DB
+DB --> Repo : Content
+deactivate DB
+Repo --> Handler : Content
+deactivate Repo
+
+Handler -> Repo : GetVersionAsync(contentId, versionNumber)
+activate Repo
+Repo -> DB : SELECT ContentVersion\nWHERE VersionNumber = {versionNumber}
+activate DB
+DB --> Repo : ContentVersion
+deactivate DB
+Repo --> Handler : ContentVersion
+deactivate Repo
+
+Handler -> Handler : Validate Version Exists
+
+alt Version Not Found
+    Handler --> Mediator : NotFoundException
+    Mediator --> Controller : 404 Not Found
+else Version Found
+    Handler -> Handler : Create New Version\nfrom Current State
+    note right: Save current before restore
+
+    Handler -> Handler : content.RestoreVersion()
+    note right: Copy data from old version\nIncrements version number
+
+    Handler -> Repo : UpdateAsync(content)
+    activate Repo
+    Repo -> DB : UPDATE Content\nSET Title, Body, etc.
+    activate DB
+    DB --> Repo : Success
+    deactivate DB
+    Repo --> Handler : Success
+    deactivate Repo
+
+    Handler -> Repo : AddAsync(newVersion)
+    activate Repo
+    note right: Save snapshot of\nrestored state
+    Repo -> DB : INSERT ContentVersion
+    activate DB
+    DB --> Repo : Success
+    deactivate DB
+    Repo --> Handler : Success
+    deactivate Repo
+
+    Handler -> Repo : SaveChangesAsync()
+    activate Repo
+    Repo -> DB : COMMIT
+    activate DB
+    DB --> Repo : Success
+    deactivate DB
+    Repo --> Handler : Success
+    deactivate Repo
+
+    Handler --> Mediator : Success
+    Mediator --> Controller : 200 OK
+    Controller --> UI : Version Restored
+    UI --> Editor : Version {versionNumber}\nRestored Successfully
+end
+
+deactivate Handler
+deactivate Mediator
+deactivate Controller
+deactivate UI
+
+@enduml
+
+' ====================================================================
+' Schedule Content Flow
+' ====================================================================
+@startuml Schedule Content
+title Schedule Content for Future Publication
+
+actor "Content Editor" as Editor FRONTEND_COLOR
+participant "Angular UI" as UI FRONTEND_COLOR
+participant "Content Controller" as Controller API_COLOR
+participant "MediatR" as Mediator SERVICE_COLOR
+participant "ScheduleContentHandler" as Handler SERVICE_COLOR
+participant "IContentRepository" as Repo REPOSITORY_COLOR
+participant "DbContext" as DB DB_COLOR
+participant "Azure Service Bus" as ServiceBus EVENT_COLOR
+participant "Hangfire/Azure Functions" as BackgroundJob EVENT_COLOR
+
+Editor -> UI : Set Publish Date/Time
+activate UI
+
+UI -> Controller : POST /api/content/{id}/schedule\n{scheduledPublishDate}
+activate Controller
+
+Controller -> Mediator : Send(ScheduleContentCommand)
+activate Mediator
+
+Mediator -> Handler : Handle(ScheduleContentCommand)
+activate Handler
+
+Handler -> Repo : GetByIdAsync(contentId)
+activate Repo
+Repo -> DB : SELECT Content
+activate DB
+DB --> Repo : Content
+deactivate DB
+Repo --> Handler : Content
+deactivate Repo
+
+Handler -> Handler : Validate Schedule Date
+note right: Must be future date\nContent must be ready
+
+alt Invalid Date
+    Handler --> Mediator : ValidationException
+    Mediator --> Controller : 400 Bad Request
+else Valid Date
+    Handler -> Handler : content.Schedule()
+    note right: Set ScheduledPublishDate\nStatus = Scheduled
+
+    Handler -> Repo : UpdateAsync(content)
+    activate Repo
+    Repo -> DB : UPDATE Content
+    activate DB
+    DB --> Repo : Success
+    deactivate DB
+    Repo --> Handler : Success
+    deactivate Repo
+
+    Handler -> Repo : SaveChangesAsync()
+    activate Repo
+    Repo -> DB : COMMIT
+    activate DB
+    DB --> Repo : Success
+    deactivate DB
+    Repo --> Handler : Success
+    deactivate Repo
+
+    Handler -> ServiceBus : Publish\nContentScheduledEvent
+    activate ServiceBus
+    ServiceBus --> Handler : Acknowledged
+    deactivate ServiceBus
+
+    Handler -> BackgroundJob : Schedule Job\nPublishAt(scheduledDate)
+    activate BackgroundJob
+    note right: Hangfire/Azure Functions\nto publish at scheduled time
+    BackgroundJob --> Handler : Job Scheduled
+    deactivate BackgroundJob
+
+    Handler --> Mediator : Success
+    Mediator --> Controller : 200 OK
+    Controller --> UI : Content Scheduled
+    UI --> Editor : Will Publish at\n{scheduledPublishDate}
+end
+
+deactivate Handler
+deactivate Mediator
+deactivate Controller
+deactivate UI
+
+note over BackgroundJob
+  At Scheduled Time:
+  1. Background job triggers
+  2. Executes PublishContentCommand
+  3. Changes status to Published
+  4. Notifies via SignalR
+end note
+
+@enduml
+
+@enduml

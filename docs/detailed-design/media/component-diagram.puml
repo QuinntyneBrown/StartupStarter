@@ -1,0 +1,141 @@
+@startuml Media Management - Component Diagram
+
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+
+!define DEVICONS https://raw.githubusercontent.com/tupadr3/plantuml-icon-font-sprites/master/devicons
+!define FONTAWESOME https://raw.githubusercontent.com/tupadr3/plantuml-icon-font-sprites/master/font-awesome-5
+
+!include DEVICONS/dotnet.puml
+!include DEVICONS/msql_server.puml
+!include FONTAWESOME/users.puml
+
+LAYOUT_WITH_LEGEND()
+
+title Media Management - Component Diagram
+
+Person(user, "User", "Uploads and manages media files", $sprite="users")
+
+System_Boundary(api, "API Layer") {
+    Component(mediaController, "Media Controller", "ASP.NET Core", "Handles HTTP requests for media operations")
+    Component(authMiddleware, "Auth Middleware", "ASP.NET Core", "Validates JWT tokens and permissions")
+}
+
+System_Boundary(application, "Application Layer") {
+    Component(mediaHandlers, "Media Handlers", "MediatR", "Command/Query handlers for media operations")
+    Component(mediaPipeline, "Validation Pipeline", "FluentValidation", "Validates commands and queries")
+    Component(eventHandlers, "Event Handlers", "MediatR", "Processes domain events")
+}
+
+System_Boundary(domain, "Domain Layer") {
+    Component(mediaAggregate, "Media Aggregate", "DDD Aggregate", "Enforces business rules and invariants")
+    Component(mediaEntities, "Media Entities", "DDD Entities", "MediaTag, MediaCategory, ProcessedMediaVersion")
+    Component(domainEvents, "Domain Events", "Event Sourcing", "MediaUploaded, MediaProcessed, etc.")
+}
+
+System_Boundary(infrastructure, "Infrastructure Layer") {
+    Component(mediaRepository, "Media Repository", "EF Core", "Data access for media entities")
+    Component(blobStorageService, "Blob Storage Service", "Azure SDK", "Uploads/downloads media files")
+    Component(processingService, "Media Processing Service", "FFmpeg/ImageSharp", "Processes media files")
+    Component(cdnService, "CDN Service", "Azure CDN", "Delivers media via CDN")
+    Component(eventBus, "Event Bus", "Azure Service Bus", "Publishes/subscribes to events")
+}
+
+System_Boundary(jobs, "Background Jobs") {
+    Component(processingJob, "Media Processing Job", "Hangfire", "Processes media asynchronously")
+    Component(cleanupJob, "Cleanup Job", "Hangfire", "Removes expired/deleted media")
+    Component(thumbnailJob, "Thumbnail Generator", "Hangfire", "Generates thumbnails")
+}
+
+System_Boundary(external, "External Services") {
+    ComponentDb(database, "Database", "SQL Server", "Stores media metadata", $sprite="msql_server")
+    ComponentDb(blobStorage, "Azure Blob Storage", "Azure Storage", "Stores media files")
+    Component(cdn, "Azure CDN", "Azure", "Content delivery network")
+    ComponentQueue(servicebus, "Azure Service Bus", "Message Queue", "Event messaging")
+}
+
+' User interactions
+Rel(user, mediaController, "Uploads/downloads media", "HTTPS/JSON")
+
+' API Layer relationships
+Rel(mediaController, authMiddleware, "Validates", "")
+Rel(mediaController, mediaHandlers, "Sends commands/queries", "MediatR")
+
+' Application Layer relationships
+Rel(mediaHandlers, mediaPipeline, "Validates", "")
+Rel(mediaHandlers, mediaAggregate, "Creates/updates", "")
+Rel(mediaHandlers, mediaRepository, "Persists", "")
+Rel(mediaHandlers, blobStorageService, "Stores files", "")
+Rel(mediaHandlers, processingService, "Processes media", "")
+
+Rel(eventHandlers, processingJob, "Triggers", "")
+Rel(eventHandlers, eventBus, "Publishes", "")
+
+' Domain Layer relationships
+Rel(mediaAggregate, mediaEntities, "Contains", "")
+Rel(mediaAggregate, domainEvents, "Raises", "")
+
+' Infrastructure relationships
+Rel(mediaRepository, database, "Reads/writes", "EF Core")
+Rel(blobStorageService, blobStorage, "Uploads/downloads", "Azure SDK")
+Rel(cdnService, cdn, "Delivers content", "")
+Rel(eventBus, servicebus, "Publishes/subscribes", "AMQP")
+
+' Background Jobs relationships
+Rel(processingJob, processingService, "Uses", "")
+Rel(processingJob, blobStorageService, "Reads/writes", "")
+Rel(processingJob, mediaRepository, "Updates", "")
+Rel(processingJob, eventBus, "Publishes events", "")
+
+Rel(cleanupJob, blobStorageService, "Deletes files", "")
+Rel(cleanupJob, mediaRepository, "Queries", "")
+
+Rel(thumbnailJob, processingService, "Generates", "")
+Rel(thumbnailJob, blobStorageService, "Stores", "")
+
+' CDN integration
+Rel(blobStorage, cdn, "Origin", "")
+Rel(user, cdn, "Downloads media", "HTTPS")
+
+' Event flow
+Rel(domainEvents, eventBus, "Published via", "")
+Rel(eventBus, eventHandlers, "Consumed by", "")
+
+SHOW_LEGEND()
+
+note right of blobStorageService
+  **Storage Strategy**
+  - Account-based containers
+  - Blob naming: {accountId}/{mediaId}/{filename}
+  - Hierarchical organization
+  - SAS token for downloads
+  - Geo-redundant storage
+end note
+
+note right of processingService
+  **Processing Pipeline**
+  - Image: resize, optimize, format conversion
+  - Video: transcode, thumbnail generation
+  - Audio: transcode, normalization
+  - Async processing via queues
+  - Multiple output formats
+end note
+
+note right of cdnService
+  **CDN Configuration**
+  - Global distribution
+  - Edge caching
+  - HTTPS enforcement
+  - Custom domain support
+  - Cache purging on update/delete
+end note
+
+note left of processingJob
+  **Background Processing**
+  - Triggered by MediaUploaded event
+  - Generates multiple variants
+  - Stores in blob storage
+  - Updates Media aggregate
+  - Publishes MediaProcessed event
+end note
+
+@enduml

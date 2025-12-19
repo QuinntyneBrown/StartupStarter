@@ -1,0 +1,181 @@
+@startuml Content Management Component Architecture
+
+!define CONTROLLER_COLOR #FFF9C4
+!define SERVICE_COLOR #F3E5F5
+!define REPOSITORY_COLOR #C8E6C9
+!define EXTERNAL_COLOR #CFD8DC
+
+title Content Management - Component Architecture with MediatR
+
+package "Presentation Layer" {
+    component [Angular 21 UI] as UI <<Angular>>
+    component [SignalR Client] as SignalRClient <<Angular>>
+}
+
+package "API Layer" {
+    component [API Gateway] as Gateway <<ASP.NET Core>>
+    component [JWT Middleware] as JWT <<Middleware>>
+    component [ContentController] as ContentCtrl <<Controller>>
+    component [PublishController] as PublishCtrl <<Controller>>
+    component [VersionController] as VersionCtrl <<Controller>>
+    component [ContentHub] as Hub <<SignalR Hub>>
+}
+
+package "Application Layer" {
+    component [MediatR] as Mediator <<MediatR>>
+
+    package "Commands" {
+        component [CreateContentHandler] as CreateHandler <<IRequestHandler>>
+        component [UpdateContentHandler] as UpdateHandler <<IRequestHandler>>
+        component [PublishContentHandler] as PublishHandler <<IRequestHandler>>
+        component [DeleteContentHandler] as DeleteHandler <<IRequestHandler>>
+        component [RestoreVersionHandler] as RestoreHandler <<IRequestHandler>>
+        component [ScheduleContentHandler] as ScheduleHandler <<IRequestHandler>>
+    }
+
+    package "Queries" {
+        component [GetContentByIdHandler] as GetByIdHandler <<IRequestHandler>>
+        component [GetContentsByAccountHandler] as GetByAccountHandler <<IRequestHandler>>
+        component [GetVersionsHandler] as GetVersionsHandler <<IRequestHandler>>
+    }
+
+    component [FluentValidation Pipeline] as Validation <<Behavior>>
+    component [AutoMapper] as Mapper <<Mapping>>
+    component [Domain Event Dispatcher] as EventDispatcher <<Service>>
+}
+
+package "Domain Layer" {
+    component [Content Aggregate] as ContentAgg <<Aggregate Root>>
+    component [ContentVersion Entity] as VersionEntity <<Entity>>
+    component [ContentMetadata Entity] as MetadataEntity <<Entity>>
+    component [Domain Events] as DomainEvents <<Events>>
+    component [IContentRepository] as IRepo <<Interface>>
+}
+
+package "Infrastructure Layer" {
+    component [ContentRepository] as Repo <<Repository>>
+    component [ApplicationDbContext] as DbContext <<EF Core>>
+    component [SignalR Service] as SignalRService <<Service>>
+    component [Service Bus Client] as ServiceBusClient <<Azure>>
+    component [Background Job Scheduler] as JobScheduler <<Hangfire/Azure Functions>>
+}
+
+package "External Services" {
+    database "Azure SQL Database" as DB {
+        [Content]
+        [ContentVersions]
+        [ContentMetadata]
+    }
+    queue "Azure Service Bus" as ServiceBus
+    cloud "Azure Blob Storage" as BlobStorage
+    cloud "Azure Redis Cache" as Redis
+}
+
+' Presentation to API connections
+UI --> Gateway : HTTPS/REST
+SignalRClient --> Hub : WebSocket
+Gateway --> JWT : Authenticate
+JWT --> ContentCtrl : Authorized Request
+JWT --> PublishCtrl : Authorized Request
+JWT --> VersionCtrl : Authorized Request
+
+' API to Application connections
+ContentCtrl --> Mediator : Send(CreateContentCommand)
+ContentCtrl --> Mediator : Send(UpdateContentCommand)
+PublishCtrl --> Mediator : Send(PublishContentCommand)
+PublishCtrl --> Mediator : Send(ScheduleContentCommand)
+VersionCtrl --> Mediator : Send(RestoreVersionCommand)
+ContentCtrl --> Mediator : Send(GetContentByIdQuery)
+
+' MediatR Pipeline
+Mediator --> Validation : Pipeline Behavior
+Validation --> CreateHandler : Validated Command
+Validation --> UpdateHandler : Validated Command
+Validation --> PublishHandler : Validated Command
+Validation --> DeleteHandler : Validated Command
+Validation --> RestoreHandler : Validated Command
+Validation --> ScheduleHandler : Validated Command
+
+Mediator --> GetByIdHandler : Query
+Mediator --> GetByAccountHandler : Query
+Mediator --> GetVersionsHandler : Query
+
+' Handlers to Domain
+CreateHandler --> ContentAgg : Create()
+UpdateHandler --> ContentAgg : Update()
+PublishHandler --> ContentAgg : Publish()
+DeleteHandler --> ContentAgg : Delete()
+RestoreHandler --> ContentAgg : RestoreVersion()
+ScheduleHandler --> ContentAgg : Schedule()
+
+ContentAgg --> VersionEntity : Creates
+ContentAgg --> MetadataEntity : Contains
+ContentAgg --> DomainEvents : Raises
+
+' Handlers to Repository
+CreateHandler --> IRepo : AddAsync()
+UpdateHandler --> IRepo : UpdateAsync()
+DeleteHandler --> IRepo : DeleteAsync()
+GetByIdHandler --> IRepo : GetByIdAsync()
+GetByAccountHandler --> IRepo : GetPagedByAccountIdAsync()
+RestoreHandler --> IRepo : GetVersionAsync()
+GetVersionsHandler --> IRepo : GetVersionsAsync()
+
+' Repository Implementation
+IRepo <|.. Repo : implements
+Repo --> DbContext : Uses
+DbContext --> DB : EF Core
+
+' Event Handling
+CreateHandler --> EventDispatcher : DispatchDomainEvents()
+UpdateHandler --> EventDispatcher : DispatchDomainEvents()
+PublishHandler --> EventDispatcher : DispatchDomainEvents()
+
+EventDispatcher --> ServiceBusClient : Publish Integration Events
+EventDispatcher --> SignalRService : Send Real-time Notifications
+
+' Infrastructure to External
+ServiceBusClient --> ServiceBus : Publish/Subscribe
+SignalRService --> Hub : Notify Clients
+JobScheduler --> PublishHandler : Scheduled Execution
+Repo --> Redis : Cache Operations
+
+' Mapping
+GetByIdHandler --> Mapper : Map to DTO
+GetByAccountHandler --> Mapper : Map to DTO
+GetVersionsHandler --> Mapper : Map to DTO
+
+note right of Mediator
+  MediatR Pattern:
+  1. Controllers send commands/queries
+  2. Pipeline behaviors (validation, logging)
+  3. Handlers process requests
+  4. Domain logic executed
+  5. Events dispatched
+end note
+
+note right of ContentAgg
+  Aggregate Root:
+  - Encapsulates business logic
+  - Enforces invariants
+  - Raises domain events
+  - Transactional boundary
+end note
+
+note bottom of EventDispatcher
+  Event Flow:
+  1. Domain events raised in aggregate
+  2. Dispatcher publishes after SaveChanges
+  3. Integration events to Service Bus
+  4. Real-time notifications via SignalR
+end note
+
+note right of DB
+  Database Schema:
+  - Content (main table)
+  - ContentVersions (history)
+  - ContentMetadata (key-value)
+  - Optimistic concurrency with RowVersion
+end note
+
+@enduml
