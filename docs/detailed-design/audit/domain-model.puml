@@ -1,0 +1,203 @@
+@startuml Audit Domain Model
+
+!define AGGREGATE_ROOT_COLOR #FFE6CC
+!define ENTITY_COLOR #E1F5FF
+!define VALUE_OBJECT_COLOR #F3E5F5
+!define DOMAIN_EVENT_COLOR #FFF9C4
+
+' Aggregate Root
+class AuditLog <<AggregateRoot>> AGGREGATE_ROOT_COLOR {
+    +Guid AuditId
+    +string EntityType
+    +string EntityId
+    +Guid? AccountId
+    +string Action
+    +string PerformedBy
+    +string IPAddress
+    +string? BeforeState
+    +string? AfterState
+    +DateTime Timestamp
+    +AuditSeverity Severity
+    +string? UserAgent
+    +string? SessionId
+    +bool IsCompliant
+    +DateTime? RetentionExpiryDate
+    --
+    +static Create(): AuditLog
+    +SetRetentionExpiry(): void
+    +MarkAsNonCompliant(): void
+    +IsExpired(): bool
+}
+
+' Entities
+class AuditExport <<Entity>> ENTITY_COLOR {
+    +Guid ExportId
+    +Guid? AccountId
+    +Guid RequestedBy
+    +DateTime StartDate
+    +DateTime EndDate
+    +string? FilterCriteria
+    +ExportFormat FileFormat
+    +ExportStatus Status
+    +int? RecordCount
+    +string? FileLocation
+    +string? ErrorMessage
+    +DateTime RequestedAt
+    +DateTime? CompletedAt
+    +DateTime? ExpiresAt
+    --
+    +static Create(): AuditExport
+    +MarkAsProcessing(): void
+    +Complete(): void
+    +Fail(): void
+    +IsExpired(): bool
+}
+
+class AuditRetentionPolicy <<Entity>> ENTITY_COLOR {
+    +Guid PolicyId
+    +Guid? AccountId
+    +string EntityType
+    +int RetentionDays
+    +bool IsActive
+    +DateTime CreatedAt
+    +DateTime? UpdatedAt
+    --
+    +static Create(): AuditRetentionPolicy
+    +UpdateRetentionDays(): void
+    +Deactivate(): void
+    +Activate(): void
+}
+
+' Value Objects
+enum AuditSeverity <<ValueObject>> VALUE_OBJECT_COLOR {
+    Verbose
+    Information
+    Warning
+    Error
+    Critical
+    SecurityCritical
+}
+
+enum ExportFormat <<ValueObject>> VALUE_OBJECT_COLOR {
+    CSV
+    JSON
+    PDF
+    Excel
+}
+
+enum ExportStatus <<ValueObject>> VALUE_OBJECT_COLOR {
+    Requested
+    Processing
+    Completed
+    Failed
+    Expired
+}
+
+' Domain Events
+abstract class DomainEvent DOMAIN_EVENT_COLOR {
+    +Guid EventId
+    +DateTime OccurredAt
+}
+
+class AuditLogCreatedDomainEvent DOMAIN_EVENT_COLOR {
+    +Guid AuditId
+    +string EntityType
+    +string EntityId
+    +Guid? AccountId
+    +string Action
+    +string PerformedBy
+    +string IPAddress
+    +object? BeforeState
+    +object? AfterState
+    +DateTime Timestamp
+}
+
+class AuditExportRequestedDomainEvent DOMAIN_EVENT_COLOR {
+    +Guid ExportId
+    +Guid? AccountId
+    +Guid RequestedBy
+    +DateTime StartDate
+    +DateTime EndDate
+    +Dictionary<string,object>? Filters
+    +DateTime Timestamp
+}
+
+class AuditExportCompletedDomainEvent DOMAIN_EVENT_COLOR {
+    +Guid ExportId
+    +Guid? AccountId
+    +ExportFormat FileFormat
+    +int RecordCount
+    +string FileLocation
+    +DateTime Timestamp
+}
+
+class AuditRetentionPolicyAppliedDomainEvent DOMAIN_EVENT_COLOR {
+    +Guid RetentionPolicyId
+    +int DeletedRecordCount
+    +DateTime OldestDateRetained
+    +DateTime Timestamp
+}
+
+' External References
+class User <<External>> {
+    +Guid UserId
+    +string Name
+}
+
+class Account <<External>> {
+    +Guid AccountId
+    +string Name
+}
+
+' Relationships
+AuditLog --> AuditSeverity : has severity
+AuditLog --> Account : belongs to
+AuditExport --> ExportFormat : has format
+AuditExport --> ExportStatus : has status
+AuditExport --> User : requested by
+AuditExport --> Account : belongs to
+AuditRetentionPolicy --> Account : applies to
+
+AuditLog ..> AuditLogCreatedDomainEvent : raises
+AuditExport ..> AuditExportRequestedDomainEvent : raises
+AuditExport ..> AuditExportCompletedDomainEvent : raises
+AuditRetentionPolicy ..> AuditRetentionPolicyAppliedDomainEvent : raises
+
+AuditLogCreatedDomainEvent --|> DomainEvent
+AuditExportRequestedDomainEvent --|> DomainEvent
+AuditExportCompletedDomainEvent --|> DomainEvent
+AuditRetentionPolicyAppliedDomainEvent --|> DomainEvent
+
+note right of AuditLog
+  Aggregate Root for compliance tracking
+  Records all system activities
+  Immutable once created
+  Raises domain events for audit trail
+  Supports GDPR, SOC2, HIPAA compliance
+end note
+
+note right of AuditExport
+  Manages audit log export requests
+  Supports multiple formats (CSV, JSON, PDF, Excel)
+  Exports expire after 30 days
+  Tracks processing status
+end note
+
+note right of AuditRetentionPolicy
+  Defines retention rules per entity type
+  Configurable per account or global
+  Enforces compliance requirements
+  Auto-deletion based on retention period
+end note
+
+note bottom of AuditSeverity
+  SecurityCritical: Authentication failures,
+    unauthorized access attempts
+  Critical: System errors, data breaches
+  Error: Failed operations
+  Warning: Policy violations
+  Information: Normal operations
+  Verbose: Detailed tracing
+end note
+
+@enduml

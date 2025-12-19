@@ -1,0 +1,284 @@
+@startuml API Management Domain Model
+
+!define AGGREGATE_ROOT_COLOR #FFE6CC
+!define ENTITY_COLOR #E1F5FF
+!define VALUE_OBJECT_COLOR #F3E5F5
+!define DOMAIN_EVENT_COLOR #FFF9C4
+
+' Aggregate Roots
+class ApiKey <<AggregateRoot>> AGGREGATE_ROOT_COLOR {
+    +Guid ApiKeyId
+    +string KeyName
+    +string HashedKey
+    +Guid AccountId
+    +Guid CreatedBy
+    +List<string> Permissions
+    +DateTime? ExpiresAt
+    +DateTime CreatedAt
+    +ApiKeyStatus Status
+    +DateTime? RevokedAt
+    +Guid? RevokedBy
+    +string? RevocationReason
+    --
+    +static Create(): ApiKey
+    +Revoke(): void
+    +IsValid(): bool
+    +HasPermission(): bool
+}
+
+class Webhook <<AggregateRoot>> AGGREGATE_ROOT_COLOR {
+    +Guid WebhookId
+    +string Url
+    +List<string> Events
+    +Guid AccountId
+    +Guid RegisteredBy
+    +WebhookStatus Status
+    +DateTime CreatedAt
+    +DateTime? UpdatedAt
+    +DateTime? DeletedAt
+    +Guid? DeletedBy
+    +bool IsDeleted
+    +int FailureCount
+    +DateTime? LastTriggeredAt
+    --
+    +static Register(): Webhook
+    +RecordSuccessfulDelivery(): void
+    +RecordFailedDelivery(): void
+    +Delete(): void
+    +UpdateUrl(): void
+    +UpdateEvents(): void
+    +Activate(): void
+    +Deactivate(): void
+    +SubscribesToEvent(): bool
+}
+
+class ApiRequest <<AggregateRoot>> AGGREGATE_ROOT_COLOR {
+    +Guid RequestId
+    +string Endpoint
+    +HttpMethod Method
+    +Guid ApiKeyId
+    +Guid AccountId
+    +string IPAddress
+    +int? ResponseStatus
+    +bool WasRateLimited
+    +RateLimitTier? RateLimitTier
+    +DateTime Timestamp
+    +TimeSpan? ResponseTime
+    +long? RequestSize
+    +long? ResponseSize
+    +string? UserAgent
+    --
+    +static Create(): ApiRequest
+    +MarkAsRateLimited(): void
+    +Complete(): void
+}
+
+' Entities
+class WebhookDelivery <<Entity>> ENTITY_COLOR {
+    +Guid DeliveryId
+    +Guid WebhookId
+    +string EventType
+    +string PayloadSent
+    +int? ResponseStatus
+    +string? FailureReason
+    +int RetryCount
+    +bool IsSuccess
+    +DateTime AttemptedAt
+    +DateTime? CompletedAt
+    +TimeSpan? ResponseTime
+    --
+    +static CreateAttempt(): WebhookDelivery
+    +MarkSuccess(): void
+    +MarkFailure(): void
+}
+
+' Enumerations (Value Objects)
+enum HttpMethod <<ValueObject>> VALUE_OBJECT_COLOR {
+    GET
+    POST
+    PUT
+    PATCH
+    DELETE
+    HEAD
+    OPTIONS
+}
+
+enum RateLimitTier <<ValueObject>> VALUE_OBJECT_COLOR {
+    Free (100/hour)
+    Basic (1,000/hour)
+    Pro (10,000/hour)
+    Enterprise (100,000/hour)
+    Unlimited
+}
+
+enum WebhookStatus <<ValueObject>> VALUE_OBJECT_COLOR {
+    Active
+    Inactive
+    Failed
+}
+
+enum ApiKeyStatus <<ValueObject>> VALUE_OBJECT_COLOR {
+    Active
+    Revoked
+    Expired
+}
+
+' Domain Events
+abstract class DomainEvent DOMAIN_EVENT_COLOR {
+    +Guid EventId
+    +DateTime OccurredAt
+}
+
+class ApiKeyCreatedDomainEvent DOMAIN_EVENT_COLOR {
+    +Guid ApiKeyId
+    +string KeyName
+    +Guid AccountId
+    +Guid CreatedBy
+    +List<string> Permissions
+    +DateTime? ExpiresAt
+}
+
+class ApiKeyRevokedDomainEvent DOMAIN_EVENT_COLOR {
+    +Guid ApiKeyId
+    +Guid AccountId
+    +Guid RevokedBy
+    +string Reason
+}
+
+class ApiRequestReceivedDomainEvent DOMAIN_EVENT_COLOR {
+    +Guid RequestId
+    +string Endpoint
+    +HttpMethod Method
+    +Guid ApiKeyId
+    +Guid AccountId
+    +string IPAddress
+}
+
+class ApiRequestRateLimitedDomainEvent DOMAIN_EVENT_COLOR {
+    +Guid RequestId
+    +string Endpoint
+    +Guid ApiKeyId
+    +Guid AccountId
+    +RateLimitTier RateLimitTier
+}
+
+class WebhookRegisteredDomainEvent DOMAIN_EVENT_COLOR {
+    +Guid WebhookId
+    +string Url
+    +List<string> Events
+    +Guid AccountId
+    +Guid RegisteredBy
+}
+
+class WebhookTriggeredDomainEvent DOMAIN_EVENT_COLOR {
+    +Guid WebhookId
+    +Guid AccountId
+    +string EventType
+    +object PayloadSent
+    +int ResponseStatus
+}
+
+class WebhookFailedDomainEvent DOMAIN_EVENT_COLOR {
+    +Guid WebhookId
+    +Guid AccountId
+    +string EventType
+    +string FailureReason
+    +int RetryCount
+}
+
+class WebhookDeletedDomainEvent DOMAIN_EVENT_COLOR {
+    +Guid WebhookId
+    +Guid AccountId
+    +Guid DeletedBy
+}
+
+' External References
+class User <<External>> {
+    +Guid UserId
+    +string Name
+}
+
+class Account <<External>> {
+    +Guid AccountId
+    +string Name
+}
+
+' Relationships - Aggregate Compositions
+ApiKey "1" --> "many" ApiRequest : has requests >
+Webhook "1" *-- "many" WebhookDelivery : has deliveries >
+
+' Relationships - Value Objects
+ApiKey --> ApiKeyStatus : has status
+Webhook --> WebhookStatus : has status
+ApiRequest --> HttpMethod : uses method
+ApiRequest --> RateLimitTier : has tier
+
+' Relationships - External References
+ApiKey --> Account : belongs to
+ApiKey --> User : created by
+Webhook --> Account : belongs to
+Webhook --> User : registered by
+ApiRequest --> ApiKey : authenticated with
+ApiRequest --> Account : belongs to
+
+' Domain Event Relationships
+ApiKey ..> ApiKeyCreatedDomainEvent : raises
+ApiKey ..> ApiKeyRevokedDomainEvent : raises
+ApiRequest ..> ApiRequestReceivedDomainEvent : raises
+ApiRequest ..> ApiRequestRateLimitedDomainEvent : raises
+Webhook ..> WebhookRegisteredDomainEvent : raises
+Webhook ..> WebhookTriggeredDomainEvent : raises
+Webhook ..> WebhookFailedDomainEvent : raises
+Webhook ..> WebhookDeletedDomainEvent : raises
+
+' Domain Event Inheritance
+ApiKeyCreatedDomainEvent --|> DomainEvent
+ApiKeyRevokedDomainEvent --|> DomainEvent
+ApiRequestReceivedDomainEvent --|> DomainEvent
+ApiRequestRateLimitedDomainEvent --|> DomainEvent
+WebhookRegisteredDomainEvent --|> DomainEvent
+WebhookTriggeredDomainEvent --|> DomainEvent
+WebhookFailedDomainEvent --|> DomainEvent
+WebhookDeletedDomainEvent --|> DomainEvent
+
+' Notes
+note right of ApiKey
+  Aggregate Root following DDD principles
+  Manages API key lifecycle and security
+  Keys stored as hashed values only
+  Supports permission-based authorization
+  Automatically expires based on ExpiresAt
+end note
+
+note right of Webhook
+  Aggregate Root for webhook management
+  Tracks delivery attempts and failures
+  Auto-disables after 5 consecutive failures
+  Supports event subscription patterns
+  Maintains delivery history via WebhookDelivery
+end note
+
+note right of ApiRequest
+  Aggregate Root for API usage tracking
+  Records all API requests for analytics
+  Tracks rate limiting and performance metrics
+  Enables audit trails and usage reporting
+end note
+
+note right of WebhookDelivery
+  Entity tracking individual webhook attempts
+  Immutable delivery record for audit
+  Supports retry mechanisms
+  Records response times and status codes
+end note
+
+note top of RateLimitTier
+  Rate limits enforced per tier:
+  Free: 100 requests/hour
+  Basic: 1,000 requests/hour
+  Pro: 10,000 requests/hour
+  Enterprise: 100,000 requests/hour
+  Unlimited: No limits
+end note
+
+@enduml

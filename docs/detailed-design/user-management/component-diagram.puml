@@ -1,0 +1,398 @@
+@startuml User Management Component Diagram
+
+!define PRESENTATION_COLOR #E3F2FD
+!define APPLICATION_COLOR #FFF9C4
+!define DOMAIN_COLOR #FFE0B2
+!define INFRASTRUCTURE_COLOR #F0F4C3
+
+skinparam component {
+    BackgroundColor<<Presentation>> PRESENTATION_COLOR
+    BackgroundColor<<Application>> APPLICATION_COLOR
+    BackgroundColor<<Domain>> DOMAIN_COLOR
+    BackgroundColor<<Infrastructure>> INFRASTRUCTURE_COLOR
+    BorderColor Black
+    ArrowColor Black
+}
+
+skinparam package {
+    BorderColor Black
+}
+
+title User Management - Clean Architecture Component Diagram
+
+' ============================================================================
+' Presentation Layer
+' ============================================================================
+package "Presentation Layer" <<Presentation>> {
+    component "UsersController" as UserCtrl <<API Controller>> {
+        [GET /users]
+        [POST /users]
+        [PUT /users/{id}]
+        [DELETE /users/{id}]
+        [POST /users/{id}/activate]
+        [POST /users/{id}/deactivate]
+        [POST /users/{id}/lock]
+        [POST /users/{id}/unlock]
+    }
+
+    component "InvitationsController" as InviteCtrl <<API Controller>> {
+        [GET /invitations]
+        [POST /invitations]
+        [POST /invitations/{id}/accept]
+    }
+
+    component "DTOs" as PresentationDTOs <<Request/Response>> {
+        CreateUserRequest
+        UpdateUserRequest
+        UserResponse
+        InvitationRequest
+        InvitationResponse
+    }
+}
+
+' ============================================================================
+' Application Layer
+' ============================================================================
+package "Application Layer" <<Application>> {
+
+    package "Commands" {
+        component "User Commands" as UserCommands {
+            CreateUserCommand
+            UpdateUserCommand
+            DeleteUserCommand
+            ActivateUserCommand
+            DeactivateUserCommand
+            LockUserCommand
+            UnlockUserCommand
+            ChangeUserAccountCommand
+        }
+
+        component "Invitation Commands" as InviteCommands {
+            SendUserInvitationCommand
+            AcceptUserInvitationCommand
+        }
+    }
+
+    package "Command Handlers" {
+        component "User Handlers" as UserHandlers {
+            CreateUserHandler
+            UpdateUserHandler
+            DeleteUserHandler
+            ActivateUserHandler
+            DeactivateUserHandler
+            LockUserHandler
+            UnlockUserHandler
+            ChangeUserAccountHandler
+        }
+
+        component "Invitation Handlers" as InviteHandlers {
+            SendUserInvitationHandler
+            AcceptUserInvitationHandler
+        }
+    }
+
+    package "Queries" {
+        component "User Queries" as UserQueries {
+            GetUserByIdQuery
+            GetUserByEmailQuery
+            GetUsersByAccountQuery
+        }
+
+        component "Invitation Queries" as InviteQueries {
+            GetUserInvitationByIdQuery
+            GetPendingInvitationsByAccountQuery
+        }
+    }
+
+    package "Query Handlers" {
+        component "User Query Handlers" as UserQueryHandlers {
+            GetUserByIdHandler
+            GetUserByEmailHandler
+            GetUsersByAccountHandler
+        }
+
+        component "Invitation Query Handlers" as InviteQueryHandlers {
+            GetUserInvitationByIdHandler
+            GetPendingInvitationsByAccountHandler
+        }
+    }
+
+    component "Application DTOs" as AppDTOs {
+        UserDto
+        UserSummaryDto
+        UserInvitationDto
+    }
+
+    component "MediatR Pipeline" as MediatR {
+        IRequest<T>
+        IRequestHandler<T>
+        IPipelineBehavior
+    }
+
+    package "Validators" {
+        component "FluentValidation" as Validators {
+            CreateUserCommandValidator
+            UpdateUserCommandValidator
+            SendInvitationValidator
+            AcceptInvitationValidator
+        }
+    }
+
+    package "Interfaces" {
+        interface "IUserRepository" as IUserRepo
+        interface "IUserInvitationRepository" as IInviteRepo
+        interface "IEmailService" as IEmailService
+        interface "INotificationService" as INotifyService
+        interface "ICurrentUserService" as ICurrentUser
+    }
+}
+
+' ============================================================================
+' Domain Layer
+' ============================================================================
+package "Domain Layer" <<Domain>> {
+
+    package "Aggregates" {
+        component "User Aggregate" as UserAggregate {
+            + User (Root)
+            + UserRole
+            --
+            Business Logic:
+            - Create()
+            - Update()
+            - Activate()
+            - Deactivate()
+            - Lock()
+            - Unlock()
+            - ChangeAccount()
+            - Delete()
+        }
+
+        component "UserInvitation Entity" as InviteAggregate {
+            + UserInvitation
+            + InvitationRole
+            --
+            Business Logic:
+            - Create()
+            - Accept()
+            - Expire()
+        }
+    }
+
+    package "Domain Events" {
+        component "User Events" as UserEvents {
+            UserCreatedDomainEvent
+            UserUpdatedDomainEvent
+            UserActivatedDomainEvent
+            UserDeactivatedDomainEvent
+            UserLockedDomainEvent
+            UserUnlockedDomainEvent
+            UserDeletedDomainEvent
+            UserAccountChangedDomainEvent
+        }
+
+        component "Invitation Events" as InviteEvents {
+            UserInvitationSentDomainEvent
+            UserInvitationAcceptedDomainEvent
+            UserInvitationExpiredDomainEvent
+        }
+    }
+
+    package "Value Objects & Enums" {
+        component "Enumerations" as Enums {
+            UserStatus
+            ActivationMethod
+            InvitationStatus
+            DeletionType
+        }
+    }
+
+    component "Base Classes" as BaseClasses {
+        AggregateRoot
+        DomainEvent
+        Entity
+    }
+}
+
+' ============================================================================
+' Infrastructure Layer
+' ============================================================================
+package "Infrastructure Layer" <<Infrastructure>> {
+
+    package "Persistence" {
+        component "Repositories" as Repos {
+            UserRepository
+            UserInvitationRepository
+        }
+
+        component "DbContext" as DbContext {
+            ApplicationDbContext
+            UserConfiguration
+            InvitationConfiguration
+        }
+
+        database "Database" as DB {
+            Users
+            UserRoles
+            UserInvitations
+            InvitationRoles
+        }
+    }
+
+    package "External Services" {
+        component "Email Service" as EmailService {
+            SendWelcomeEmail()
+            SendInvitationEmail()
+            SendActivationEmail()
+            SendLockNotification()
+        }
+
+        component "Notification Service" as NotifyService {
+            NotifyUserStatusChange()
+            NotifySecurityEvent()
+        }
+
+        component "Identity Service" as IdentityService {
+            GetCurrentUserId()
+            GetCurrentUserRoles()
+            ValidatePermissions()
+        }
+    }
+
+    package "Event Processing" {
+        component "Domain Event Dispatcher" as EventDispatcher {
+            DispatchEvents()
+            PublishToEventBus()
+        }
+
+        component "Event Handlers" as EventHandlers {
+            UserCreatedEventHandler
+            UserActivatedEventHandler
+            UserLockedEventHandler
+            InvitationSentEventHandler
+        }
+    }
+}
+
+' ============================================================================
+' External Systems
+' ============================================================================
+cloud "External Systems" {
+    component "SMTP Server" as SMTP
+    component "Message Queue" as MQ
+    component "Logging Service" as Logging
+    component "Authentication Provider" as AuthProvider
+}
+
+' ============================================================================
+' Relationships - Presentation to Application
+' ============================================================================
+UserCtrl ..> MediatR : sends commands/queries
+InviteCtrl ..> MediatR : sends commands/queries
+UserCtrl ..> PresentationDTOs : uses
+InviteCtrl ..> PresentationDTOs : uses
+
+MediatR ..> UserCommands : routes
+MediatR ..> InviteCommands : routes
+MediatR ..> UserQueries : routes
+MediatR ..> InviteQueries : routes
+
+MediatR ..> UserHandlers : invokes
+MediatR ..> InviteHandlers : invokes
+MediatR ..> UserQueryHandlers : invokes
+MediatR ..> InviteQueryHandlers : invokes
+
+MediatR ..> Validators : validates before handling
+
+' ============================================================================
+' Relationships - Application to Domain
+' ============================================================================
+UserHandlers ..> UserAggregate : uses
+UserHandlers ..> IUserRepo : depends on
+UserHandlers ..> IEmailService : depends on
+UserHandlers ..> INotifyService : depends on
+
+InviteHandlers ..> InviteAggregate : uses
+InviteHandlers ..> IInviteRepo : depends on
+InviteHandlers ..> IEmailService : depends on
+
+UserQueryHandlers ..> IUserRepo : depends on
+InviteQueryHandlers ..> IInviteRepo : depends on
+
+UserQueryHandlers ..> AppDTOs : returns
+InviteQueryHandlers ..> AppDTOs : returns
+
+UserAggregate ..> UserEvents : raises
+InviteAggregate ..> InviteEvents : raises
+
+UserAggregate ..> Enums : uses
+InviteAggregate ..> Enums : uses
+
+UserAggregate --|> BaseClasses : inherits
+InviteAggregate --|> BaseClasses : inherits
+UserEvents --|> BaseClasses : inherits
+InviteEvents --|> BaseClasses : inherits
+
+' ============================================================================
+' Relationships - Infrastructure Implementation
+' ============================================================================
+IUserRepo <|.. Repos : implements
+IInviteRepo <|.. Repos : implements
+IEmailService <|.. EmailService : implements
+INotifyService <|.. NotifyService : implements
+ICurrentUser <|.. IdentityService : implements
+
+Repos ..> DbContext : uses
+DbContext ..> DB : persists to
+
+EventDispatcher ..> UserEvents : dispatches
+EventDispatcher ..> InviteEvents : dispatches
+EventDispatcher ..> EventHandlers : notifies
+
+EventHandlers ..> EmailService : triggers
+EventHandlers ..> NotifyService : triggers
+EventHandlers ..> MQ : publishes to
+
+' ============================================================================
+' Relationships - External
+' ============================================================================
+EmailService ..> SMTP : uses
+EventHandlers ..> MQ : publishes
+EventDispatcher ..> Logging : logs
+IdentityService ..> AuthProvider : authenticates
+
+' ============================================================================
+' Notes
+' ============================================================================
+note right of MediatR
+  CQRS Pattern
+  - Separates Commands and Queries
+  - Mediates between Controllers and Handlers
+  - Implements Pipeline Behaviors
+    (Validation, Logging, Transactions)
+end note
+
+note right of UserAggregate
+  DDD Aggregate Root
+  - Enforces business invariants
+  - Raises domain events
+  - Encapsulates business logic
+  - Transaction boundary
+end note
+
+note bottom of BaseClasses
+  Clean Architecture Core
+  - Domain layer has no dependencies
+  - Business logic is independent
+  - Framework agnostic
+end note
+
+note left of EventDispatcher
+  Event-Driven Architecture
+  - Processes domain events after commit
+  - Triggers side effects (emails, notifications)
+  - Publishes to external message bus
+  - Maintains audit trail
+end note
+
+@enduml

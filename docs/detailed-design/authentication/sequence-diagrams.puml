@@ -1,0 +1,446 @@
+@startuml Authentication Sequence Diagrams
+
+' ===================================================================
+' 1. Login with Password Flow
+' ===================================================================
+@startuml Login with Password
+!theme plain
+title Login with Password Flow
+
+actor User
+participant "API Controller" as API
+participant "LoginCommandHandler" as Handler
+participant "IUserRepository" as UserRepo
+participant "IPasswordHasher" as Hasher
+participant "ILoginAttemptRepo" as AttemptRepo
+participant "IUserSessionRepo" as SessionRepo
+participant "IJwtService" as JWT
+participant "EventDispatcher" as Events
+
+User -> API: POST /api/auth/login\n{email, password}
+activate API
+
+API -> Handler: Send LoginCommand
+activate Handler
+
+Handler -> UserRepo: GetByEmailAsync(email)
+activate UserRepo
+UserRepo --> Handler: User
+deactivate UserRepo
+
+alt User not found
+  Handler -> AttemptRepo: AddAsync(FailedAttempt)
+  Handler -> Events: Publish LoginFailedDomainEvent
+  Handler --> API: LoginResponse(Success: false)
+  API --> User: 401 Unauthorized
+else User found
+  Handler -> Hasher: VerifyPassword(hash, password)
+  activate Hasher
+  Hasher --> Handler: bool
+  deactivate Hasher
+
+  alt Invalid password
+    Handler -> AttemptRepo: AddAsync(FailedAttempt)
+    Handler -> Events: Publish LoginFailedDomainEvent
+    Handler --> API: LoginResponse(Success: false)
+    API --> User: 401 Unauthorized
+  else Valid password
+    alt Account locked or disabled
+      Handler -> AttemptRepo: AddAsync(FailedAttempt)
+      Handler -> Events: Publish LoginFailedDomainEvent
+      Handler --> API: LoginResponse(Success: false)
+      API --> User: 403 Forbidden
+    else Account active
+      Handler -> AttemptRepo: AddAsync(SuccessfulAttempt)
+
+      alt User has MFA enabled
+        Handler -> SessionRepo: Create UserSession\n(IsMfaVerified: false)
+        activate SessionRepo
+        SessionRepo --> Handler: UserSession
+        deactivate SessionRepo
+
+        Handler -> Events: Publish LoginSucceededDomainEvent
+        Handler --> API: LoginResponse\n(RequiresMfa: true)
+        API --> User: 200 OK\n{requiresMfa: true, sessionId}
+      else No MFA
+        Handler -> SessionRepo: Create UserSession\n(IsMfaVerified: true)
+        activate SessionRepo
+        SessionRepo --> Handler: UserSession
+        deactivate SessionRepo
+
+        Handler -> JWT: GenerateAccessToken(userId, accountId)
+        activate JWT
+        JWT --> Handler: accessToken
+        deactivate JWT
+
+        Handler -> JWT: GenerateRefreshToken()
+        activate JWT
+        JWT --> Handler: refreshToken
+        deactivate JWT
+
+        Handler -> SessionRepo: SetRefreshToken(session)
+        Handler -> Events: Publish LoginSucceededDomainEvent
+        Handler --> API: LoginResponse\n(tokens, sessionId)
+        API --> User: 200 OK\n{accessToken, refreshToken}
+      end
+    end
+  end
+end
+
+deactivate Handler
+deactivate API
+
+@enduml
+
+' ===================================================================
+' 2. Login with MFA Flow
+' ===================================================================
+@startuml Login with MFA
+!theme plain
+title Login with MFA Flow
+
+actor User
+participant "API Controller" as API
+participant "LoginWithMfaHandler" as Handler
+participant "IUserSessionRepo" as SessionRepo
+participant "IMfaConfigRepo" as MfaRepo
+participant "IMfaService" as MfaService
+participant "IJwtService" as JWT
+participant "EventDispatcher" as Events
+
+User -> API: POST /api/auth/login/mfa\n{sessionId, mfaCode}
+activate API
+
+API -> Handler: Send LoginWithMfaCommand
+activate Handler
+
+Handler -> SessionRepo: GetByIdAsync(sessionId)
+activate SessionRepo
+SessionRepo --> Handler: UserSession
+deactivate SessionRepo
+
+alt Session not found or expired
+  Handler --> API: LoginResponse(Success: false)
+  API --> User: 401 Unauthorized
+else Session valid
+  Handler -> MfaRepo: GetActiveByUserIdAsync(userId)
+  activate MfaRepo
+  MfaRepo --> Handler: MfaConfiguration
+  deactivate MfaRepo
+
+  Handler -> MfaService: ValidateCode(secret, code)
+  activate MfaService
+  MfaService --> Handler: bool
+  deactivate MfaService
+
+  alt Invalid MFA code
+    Handler -> MfaRepo: RecordFailedAttempt()
+    Handler -> Events: Publish LoginFailedDomainEvent\n(Reason: MFAFailed)
+    Handler --> API: LoginResponse(Success: false)
+    API --> User: 401 Unauthorized
+  else Valid MFA code
+    Handler -> SessionRepo: CompleteMfaVerification(session)
+    Handler -> MfaRepo: RecordSuccessfulVerification()
+
+    Handler -> JWT: GenerateAccessToken(userId, accountId)
+    activate JWT
+    JWT --> Handler: accessToken
+    deactivate JWT
+
+    Handler -> JWT: GenerateRefreshToken()
+    activate JWT
+    JWT --> Handler: refreshToken
+    deactivate JWT
+
+    Handler -> SessionRepo: SetRefreshToken(session)
+    Handler -> Events: Publish LoginSucceededDomainEvent
+    Handler --> API: LoginResponse(tokens)
+    API --> User: 200 OK\n{accessToken, refreshToken}
+  end
+end
+
+deactivate Handler
+deactivate API
+
+@enduml
+
+' ===================================================================
+' 3. Password Reset Flow
+' ===================================================================
+@startuml Password Reset
+!theme plain
+title Password Reset Flow
+
+actor User
+participant "API Controller" as API
+participant "RequestResetHandler" as ResetHandler
+participant "ResetPasswordHandler" as CompleteHandler
+participant "IUserRepository" as UserRepo
+participant "IPasswordResetRepo" as TokenRepo
+participant "IPasswordHasher" as Hasher
+participant "IEmailService" as Email
+participant "EventDispatcher" as Events
+
+== Request Password Reset ==
+User -> API: POST /api/auth/password/reset-request\n{email}
+activate API
+
+API -> ResetHandler: Send RequestPasswordResetCommand
+activate ResetHandler
+
+ResetHandler -> UserRepo: GetByEmailAsync(email)
+activate UserRepo
+UserRepo --> ResetHandler: User (or null)
+deactivate UserRepo
+
+note right of ResetHandler
+  Always return success to prevent
+  email enumeration attacks
+end note
+
+ResetHandler -> Hasher: GenerateSecureToken()
+activate Hasher
+Hasher --> ResetHandler: resetToken
+deactivate Hasher
+
+ResetHandler -> Hasher: HashToken(resetToken)
+activate Hasher
+Hasher --> ResetHandler: tokenHash
+deactivate Hasher
+
+ResetHandler -> TokenRepo: Create PasswordResetToken
+activate TokenRepo
+TokenRepo --> ResetHandler: PasswordResetToken
+deactivate TokenRepo
+
+ResetHandler -> Events: Publish PasswordResetRequestedDomainEvent
+ResetHandler -> Email: SendPasswordResetEmail\n(email, resetToken)
+activate Email
+Email --> ResetHandler: EmailSent
+deactivate Email
+
+ResetHandler --> API: Success message
+API --> User: 200 OK\n"Reset link sent"
+
+deactivate ResetHandler
+deactivate API
+
+== Complete Password Reset ==
+User -> API: POST /api/auth/password/reset\n{token, newPassword}
+activate API
+
+API -> CompleteHandler: Send ResetPasswordCommand
+activate CompleteHandler
+
+CompleteHandler -> Hasher: HashToken(token)
+activate Hasher
+Hasher --> CompleteHandler: tokenHash
+deactivate Hasher
+
+CompleteHandler -> TokenRepo: GetByTokenHashAsync(tokenHash)
+activate TokenRepo
+TokenRepo --> CompleteHandler: PasswordResetToken
+deactivate TokenRepo
+
+alt Token not found or expired
+  CompleteHandler --> API: Error response
+  API --> User: 400 Bad Request
+else Token valid
+  CompleteHandler -> TokenRepo: MarkAsUsed(token)
+
+  CompleteHandler -> Hasher: HashPassword(newPassword)
+  activate Hasher
+  Hasher --> CompleteHandler: passwordHash
+  deactivate Hasher
+
+  CompleteHandler -> UserRepo: UpdatePassword(user, hash)
+  activate UserRepo
+  UserRepo --> CompleteHandler: Updated
+  deactivate UserRepo
+
+  CompleteHandler -> Events: Publish PasswordResetCompletedDomainEvent
+  CompleteHandler --> API: Success response
+  API --> User: 200 OK\n"Password reset successful"
+end
+
+deactivate CompleteHandler
+deactivate API
+
+@enduml
+
+' ===================================================================
+' 4. Session Management Flow
+' ===================================================================
+@startuml Session Management
+!theme plain
+title Session Management Flow
+
+actor User
+participant "API Controller" as API
+participant "RefreshTokenHandler" as RefreshHandler
+participant "LogoutHandler" as LogoutHandler
+participant "IUserSessionRepo" as SessionRepo
+participant "IJwtService" as JWT
+participant "EventDispatcher" as Events
+
+== Refresh Token ==
+User -> API: POST /api/auth/refresh\n{refreshToken}
+activate API
+
+API -> RefreshHandler: Send RefreshTokenCommand
+activate RefreshHandler
+
+RefreshHandler -> SessionRepo: GetByRefreshTokenAsync(token)
+activate SessionRepo
+SessionRepo --> RefreshHandler: UserSession
+deactivate SessionRepo
+
+alt Session not found or token invalid
+  RefreshHandler --> API: Error response
+  API --> User: 401 Unauthorized
+else Session valid and token valid
+  alt Session expired
+    RefreshHandler -> SessionRepo: Expire(session)
+    RefreshHandler -> Events: Publish SessionExpiredDomainEvent
+    RefreshHandler --> API: Error response
+    API --> User: 401 Unauthorized
+  else Session active
+    RefreshHandler -> SessionRepo: UpdateActivity(session)
+
+    RefreshHandler -> JWT: GenerateAccessToken(userId, accountId)
+    activate JWT
+    JWT --> RefreshHandler: newAccessToken
+    deactivate JWT
+
+    RefreshHandler -> JWT: GenerateRefreshToken()
+    activate JWT
+    JWT --> RefreshHandler: newRefreshToken
+    deactivate JWT
+
+    RefreshHandler -> SessionRepo: SetRefreshToken(session, newToken)
+    RefreshHandler --> API: RefreshTokenResponse(tokens)
+    API --> User: 200 OK\n{accessToken, refreshToken}
+  end
+end
+
+deactivate RefreshHandler
+deactivate API
+
+== Logout ==
+User -> API: POST /api/auth/logout\n{sessionId}
+activate API
+
+API -> LogoutHandler: Send LogoutCommand
+activate LogoutHandler
+
+LogoutHandler -> SessionRepo: GetByIdAsync(sessionId)
+activate SessionRepo
+SessionRepo --> LogoutHandler: UserSession
+deactivate SessionRepo
+
+alt Session found
+  LogoutHandler -> SessionRepo: Logout(session, LogoutType.Manual)
+  LogoutHandler -> Events: Publish LogoutInitiatedDomainEvent
+  LogoutHandler --> API: Success
+  API --> User: 200 OK
+else Session not found
+  LogoutHandler --> API: Not found
+  API --> User: 404 Not Found
+end
+
+deactivate LogoutHandler
+deactivate API
+
+@enduml
+
+' ===================================================================
+' 5. Enable MFA Flow
+' ===================================================================
+@startuml Enable MFA
+!theme plain
+title Enable MFA Flow
+
+actor User
+participant "API Controller" as API
+participant "EnableMfaHandler" as Handler
+participant "VerifyMfaHandler" as VerifyHandler
+participant "IMfaConfigRepo" as MfaRepo
+participant "IMfaService" as MfaService
+participant "IUserRepository" as UserRepo
+participant "EventDispatcher" as Events
+
+== Step 1: Initiate MFA Setup ==
+User -> API: POST /api/auth/mfa/enable\n{userId, method}
+activate API
+
+API -> Handler: Send EnableMfaCommand
+activate Handler
+
+Handler -> UserRepo: GetByIdAsync(userId)
+activate UserRepo
+UserRepo --> Handler: User
+deactivate UserRepo
+
+alt MFA method is AuthenticatorApp
+  Handler -> MfaService: GenerateSecret()
+  activate MfaService
+  MfaService --> Handler: secret
+  deactivate MfaService
+
+  Handler -> MfaService: GenerateQrCodeUri(email, secret)
+  activate MfaService
+  MfaService --> Handler: qrCodeUri
+  deactivate MfaService
+end
+
+Handler -> MfaService: GenerateBackupCodes(10)
+activate MfaService
+MfaService --> Handler: backupCodes
+deactivate MfaService
+
+Handler -> MfaRepo: Create MfaConfiguration\n(IsEnabled: false)
+activate MfaRepo
+MfaRepo --> Handler: MfaConfiguration
+deactivate MfaRepo
+
+Handler --> API: EnableMfaResponse\n{qrCodeUri, secret, backupCodes}
+API --> User: 200 OK\n{setup details}
+
+deactivate Handler
+deactivate API
+
+== Step 2: Verify and Activate MFA ==
+User -> API: POST /api/auth/mfa/verify\n{userId, code}
+activate API
+
+API -> VerifyHandler: Send VerifyMfaCommand
+activate VerifyHandler
+
+VerifyHandler -> MfaRepo: GetByUserIdAsync(userId)
+activate MfaRepo
+MfaRepo --> VerifyHandler: MfaConfiguration
+deactivate MfaRepo
+
+VerifyHandler -> MfaService: ValidateCode(secret, code)
+activate MfaService
+MfaService --> VerifyHandler: bool
+deactivate MfaService
+
+alt Invalid code
+  VerifyHandler -> MfaRepo: RecordFailedAttempt()
+  VerifyHandler --> API: Error response
+  API --> User: 400 Bad Request
+else Valid code
+  VerifyHandler -> MfaRepo: Update(IsEnabled: true)
+  VerifyHandler -> MfaRepo: RecordSuccessfulVerification()
+  VerifyHandler -> Events: Publish MfaEnabledDomainEvent
+  VerifyHandler --> API: Success response
+  API --> User: 200 OK\n"MFA enabled"
+end
+
+deactivate VerifyHandler
+deactivate API
+
+@enduml
+
+@enduml

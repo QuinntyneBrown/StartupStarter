@@ -1,0 +1,269 @@
+@startuml API Management Component Architecture
+
+!define CONTROLLER_COLOR #FFF9C4
+!define SERVICE_COLOR #F3E5F5
+!define REPOSITORY_COLOR #C8E6C9
+!define EXTERNAL_COLOR #CFD8DC
+
+title API Management - Component Architecture with MediatR
+
+package "Presentation Layer" {
+    component [Angular 21 UI] as UI <<Angular>>
+    component [API Key Management Component] as ApiKeyUI <<Angular Component>>
+    component [Webhook Configuration Component] as WebhookUI <<Angular Component>>
+    component [Rate Limit Dashboard] as RateLimitUI <<Angular Component>>
+}
+
+package "API Layer" {
+    component [API Gateway] as Gateway <<ASP.NET Core>>
+    component [JWT Middleware] as JWT <<Middleware>>
+    component [RateLimitMiddleware] as RateLimitMW <<Middleware>>
+    component [ApiKeyController] as ApiKeyCtrl <<Controller>>
+    component [WebhookController] as WebhookCtrl <<Controller>>
+    component [ApiUsageController] as UsageCtrl <<Controller>>
+}
+
+package "Application Layer" {
+    component [MediatR] as Mediator <<MediatR>>
+
+    package "Commands" {
+        component [CreateApiKeyHandler] as CreateApiKeyHandler <<IRequestHandler>>
+        component [RevokeApiKeyHandler] as RevokeApiKeyHandler <<IRequestHandler>>
+        component [RotateApiKeyHandler] as RotateApiKeyHandler <<IRequestHandler>>
+        component [CreateWebhookHandler] as CreateWebhookHandler <<IRequestHandler>>
+        component [UpdateWebhookHandler] as UpdateWebhookHandler <<IRequestHandler>>
+        component [DeleteWebhookHandler] as DeleteWebhookHandler <<IRequestHandler>>
+        component [RetryWebhookHandler] as RetryWebhookHandler <<IRequestHandler>>
+    }
+
+    package "Queries" {
+        component [GetApiKeyByIdHandler] as GetApiKeyHandler <<IRequestHandler>>
+        component [GetApiKeysByAccountHandler] as GetApiKeysHandler <<IRequestHandler>>
+        component [GetWebhooksByAccountHandler] as GetWebhooksHandler <<IRequestHandler>>
+        component [GetApiUsageHandler] as GetUsageHandler <<IRequestHandler>>
+        component [GetRateLimitStatusHandler] as GetRateLimitHandler <<IRequestHandler>>
+    }
+
+    component [FluentValidation Pipeline] as Validation <<Behavior>>
+    component [AutoMapper] as Mapper <<Mapping>>
+    component [Domain Event Dispatcher] as EventDispatcher <<Service>>
+}
+
+package "Domain Layer" {
+    component [ApiKey Aggregate] as ApiKeyAgg <<Aggregate Root>>
+    component [Webhook Aggregate] as WebhookAgg <<Aggregate Root>>
+    component [ApiUsage Entity] as UsageEntity <<Entity>>
+    component [RateLimitPolicy ValueObject] as RateLimitVO <<Value Object>>
+    component [Domain Events] as DomainEvents <<Events>>
+    component [IApiKeyRepository] as IApiKeyRepo <<Interface>>
+    component [IWebhookRepository] as IWebhookRepo <<Interface>>
+    component [IApiUsageRepository] as IUsageRepo <<Interface>>
+}
+
+package "Infrastructure Layer" {
+    component [ApiKeyRepository] as ApiKeyRepo <<Repository>>
+    component [WebhookRepository] as WebhookRepo <<Repository>>
+    component [ApiUsageRepository] as UsageRepo <<Repository>>
+    component [ApplicationDbContext] as DbContext <<EF Core>>
+    component [RateLimitService] as RateLimitSvc <<Service>>
+    component [WebhookDeliveryService] as WebhookDeliverySvc <<Service>>
+    component [ApiKeyEncryptionService] as EncryptionSvc <<Service>>
+    component [Service Bus Client] as ServiceBusClient <<Azure>>
+}
+
+package "External Services" {
+    database "Azure SQL Database" as DB {
+        [ApiKeys]
+        [Webhooks]
+        [ApiUsage]
+        [RateLimits]
+    }
+    queue "Azure Service Bus" as ServiceBus
+    cloud "Azure Redis Cache" as Redis
+    cloud "Azure Key Vault" as KeyVault
+}
+
+' Presentation to API connections
+UI --> Gateway : HTTPS/REST
+ApiKeyUI --> ApiKeyCtrl : Manage API Keys
+WebhookUI --> WebhookCtrl : Configure Webhooks
+RateLimitUI --> UsageCtrl : View Usage & Limits
+Gateway --> JWT : Authenticate
+JWT --> RateLimitMW : Rate Limit Check
+RateLimitMW --> ApiKeyCtrl : Authorized Request
+RateLimitMW --> WebhookCtrl : Authorized Request
+RateLimitMW --> UsageCtrl : Authorized Request
+
+' Middleware to Services
+RateLimitMW --> RateLimitSvc : CheckRateLimit()
+RateLimitMW --> UsageRepo : RecordUsage()
+
+' API to Application connections
+ApiKeyCtrl --> Mediator : Send(CreateApiKeyCommand)
+ApiKeyCtrl --> Mediator : Send(RevokeApiKeyCommand)
+ApiKeyCtrl --> Mediator : Send(RotateApiKeyCommand)
+ApiKeyCtrl --> Mediator : Send(GetApiKeysByAccountQuery)
+
+WebhookCtrl --> Mediator : Send(CreateWebhookCommand)
+WebhookCtrl --> Mediator : Send(UpdateWebhookCommand)
+WebhookCtrl --> Mediator : Send(DeleteWebhookCommand)
+WebhookCtrl --> Mediator : Send(RetryWebhookCommand)
+WebhookCtrl --> Mediator : Send(GetWebhooksByAccountQuery)
+
+UsageCtrl --> Mediator : Send(GetApiUsageQuery)
+UsageCtrl --> Mediator : Send(GetRateLimitStatusQuery)
+
+' MediatR Pipeline
+Mediator --> Validation : Pipeline Behavior
+Validation --> CreateApiKeyHandler : Validated Command
+Validation --> RevokeApiKeyHandler : Validated Command
+Validation --> RotateApiKeyHandler : Validated Command
+Validation --> CreateWebhookHandler : Validated Command
+Validation --> UpdateWebhookHandler : Validated Command
+Validation --> DeleteWebhookHandler : Validated Command
+Validation --> RetryWebhookHandler : Validated Command
+
+Mediator --> GetApiKeyHandler : Query
+Mediator --> GetApiKeysHandler : Query
+Mediator --> GetWebhooksHandler : Query
+Mediator --> GetUsageHandler : Query
+Mediator --> GetRateLimitHandler : Query
+
+' Handlers to Domain
+CreateApiKeyHandler --> ApiKeyAgg : Create()
+RevokeApiKeyHandler --> ApiKeyAgg : Revoke()
+RotateApiKeyHandler --> ApiKeyAgg : Rotate()
+
+CreateWebhookHandler --> WebhookAgg : Create()
+UpdateWebhookHandler --> WebhookAgg : Update()
+DeleteWebhookHandler --> WebhookAgg : Delete()
+RetryWebhookHandler --> WebhookAgg : Retry()
+
+ApiKeyAgg --> RateLimitVO : Contains
+ApiKeyAgg --> DomainEvents : Raises
+WebhookAgg --> DomainEvents : Raises
+
+' Handlers to Repository
+CreateApiKeyHandler --> IApiKeyRepo : AddAsync()
+RevokeApiKeyHandler --> IApiKeyRepo : UpdateAsync()
+RotateApiKeyHandler --> IApiKeyRepo : UpdateAsync()
+GetApiKeyHandler --> IApiKeyRepo : GetByIdAsync()
+GetApiKeysHandler --> IApiKeyRepo : GetByAccountIdAsync()
+
+CreateWebhookHandler --> IWebhookRepo : AddAsync()
+UpdateWebhookHandler --> IWebhookRepo : UpdateAsync()
+DeleteWebhookHandler --> IWebhookRepo : DeleteAsync()
+GetWebhooksHandler --> IWebhookRepo : GetByAccountIdAsync()
+
+GetUsageHandler --> IUsageRepo : GetUsageByApiKeyAsync()
+GetRateLimitHandler --> IUsageRepo : GetRateLimitStatusAsync()
+
+' Handlers use Encryption Service
+CreateApiKeyHandler --> EncryptionSvc : EncryptApiKey()
+RotateApiKeyHandler --> EncryptionSvc : EncryptApiKey()
+GetApiKeyHandler --> EncryptionSvc : DecryptApiKey()
+
+' Repository Implementation
+IApiKeyRepo <|.. ApiKeyRepo : implements
+IWebhookRepo <|.. WebhookRepo : implements
+IUsageRepo <|.. UsageRepo : implements
+
+ApiKeyRepo --> DbContext : Uses
+WebhookRepo --> DbContext : Uses
+UsageRepo --> DbContext : Uses
+DbContext --> DB : EF Core
+
+' Event Handling
+CreateApiKeyHandler --> EventDispatcher : DispatchDomainEvents()
+RevokeApiKeyHandler --> EventDispatcher : DispatchDomainEvents()
+CreateWebhookHandler --> EventDispatcher : DispatchDomainEvents()
+UpdateWebhookHandler --> EventDispatcher : DispatchDomainEvents()
+
+EventDispatcher --> ServiceBusClient : Publish Integration Events
+EventDispatcher --> WebhookDeliverySvc : Trigger Webhook Delivery
+
+' Infrastructure to External
+ServiceBusClient --> ServiceBus : Publish/Subscribe
+WebhookDeliverySvc --> ServiceBus : Enqueue Webhook Events
+RateLimitSvc --> Redis : Get/Set Rate Limit Counters
+EncryptionSvc --> KeyVault : Retrieve Encryption Keys
+UsageRepo --> Redis : Cache Usage Stats
+
+' Mapping
+GetApiKeyHandler --> Mapper : Map to DTO
+GetApiKeysHandler --> Mapper : Map to DTO
+GetWebhooksHandler --> Mapper : Map to DTO
+GetUsageHandler --> Mapper : Map to DTO
+
+note right of Mediator
+  MediatR Pattern:
+  1. Controllers send commands/queries
+  2. Pipeline behaviors (validation, logging)
+  3. Handlers process requests
+  4. Domain logic executed
+  5. Events dispatched
+end note
+
+note right of ApiKeyAgg
+  ApiKey Aggregate Root:
+  - Encapsulates API key lifecycle
+  - Enforces rate limit policies
+  - Raises domain events (Created, Revoked, Rotated)
+  - Ensures security constraints
+  - Transactional boundary
+end note
+
+note right of WebhookAgg
+  Webhook Aggregate Root:
+  - Manages webhook configuration
+  - Validates endpoint URLs
+  - Enforces retry policies
+  - Raises domain events (Created, Updated, Failed)
+  - Tracks delivery status
+end note
+
+note bottom of RateLimitMW
+  Rate Limiting Strategy:
+  1. Middleware intercepts all API requests
+  2. Checks Redis for current rate limit counter
+  3. Increments counter with TTL
+  4. Returns 429 Too Many Requests if exceeded
+  5. Records usage metrics asynchronously
+end note
+
+note bottom of EventDispatcher
+  Event Flow:
+  1. Domain events raised in aggregates
+  2. Dispatcher publishes after SaveChanges
+  3. Integration events to Service Bus
+  4. Webhook delivery triggered asynchronously
+  5. Rate limit events for analytics
+end note
+
+note right of WebhookDeliverySvc
+  Webhook Delivery:
+  - Async processing via Service Bus
+  - Exponential backoff retry strategy
+  - Signature verification (HMAC-SHA256)
+  - Delivery status tracking
+  - Dead letter queue for failures
+end note
+
+note right of DB
+  Database Schema:
+  - ApiKeys (encrypted keys, policies)
+  - Webhooks (endpoints, config)
+  - ApiUsage (usage metrics)
+  - RateLimits (account policies)
+  - Optimistic concurrency with RowVersion
+end note
+
+note left of Redis
+  Redis Usage:
+  - Rate limit counters (sliding window)
+  - API usage statistics cache
+  - Session state for distributed systems
+  - TTL-based automatic cleanup
+end note
+
+@enduml
