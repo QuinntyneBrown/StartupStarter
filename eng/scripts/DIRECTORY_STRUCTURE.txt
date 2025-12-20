@@ -1,0 +1,42 @@
+eng/scripts/
+├── README.md                    - Comprehensive documentation for all scripts
+├── SCRIPTS.txt                  - Quick reference list of all scripts
+│
+├── Setup Scripts
+│   ├── setup.cmd                - Windows: Complete environment setup
+│   └── setup.sh                 - Unix: Complete environment setup
+│
+├── Build Scripts
+│   ├── build.cmd                - Windows: Build entire solution
+│   └── build.sh                 - Unix: Build entire solution
+│
+├── Development Scripts
+│   ├── api-dev.cmd              - Windows: Start API with hot reload
+│   └── api-dev.sh               - Unix: Start API with hot reload
+│
+├── Frontend Scripts
+│   ├── frontend-install.cmd     - Windows: Install npm dependencies
+│   ├── frontend-install.sh      - Unix: Install npm dependencies
+│   ├── frontend-dev.cmd         - Windows: Start Angular dev server
+│   ├── frontend-dev.sh          - Unix: Start Angular dev server
+│   ├── frontend-build.cmd       - Windows: Build for production
+│   └── frontend-build.sh        - Unix: Build for production
+│
+├── Storybook Scripts
+│   ├── storybook-dev.cmd        - Windows: Start Storybook server
+│   ├── storybook-dev.sh         - Unix: Start Storybook server
+│   ├── storybook-build.cmd      - Windows: Build Storybook static
+│   └── storybook-build.sh       - Unix: Build Storybook static
+│
+├── Database Scripts
+│   ├── db-migrate.cmd           - Windows: Create EF migration
+│   ├── db-migrate.sh            - Unix: Create EF migration
+│   ├── db-update.cmd            - Windows: Apply migrations
+│   └── db-update.sh             - Unix: Apply migrations
+│
+└── Test Scripts
+    ├── test.cmd                 - Windows: Run all tests
+    └── test.sh                  - Unix: Run all tests
+
+Total: 23 scripts (11 pairs + README)
+All bash scripts (.sh) are executable (chmod +x)
