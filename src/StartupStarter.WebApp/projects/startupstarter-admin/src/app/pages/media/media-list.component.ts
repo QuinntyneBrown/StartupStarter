@@ -29,7 +29,7 @@ import { Media, MediaType } from '../../models';
 
     <mat-card>
       <mat-card-content>
-        <mat-form-field appearance="outline" class="search-field">
+        <mat-form-field appearance="outline" class="media-list__search-field">
           <mat-label>Search media</mat-label>
           <input matInput [(ngModel)]="searchQuery" placeholder="Search by filename...">
           <mat-icon matSuffix>search</mat-icon>
@@ -40,10 +40,10 @@ import { Media, MediaType } from '../../models';
         } @else if (filtered().length === 0) {
           <app-empty-state icon="perm_media" title="No media found" message="Upload your first file" actionLabel="Upload" (action)="fileInput.click()"></app-empty-state>
         } @else {
-          <div class="media-grid">
+          <div class="media-list__grid">
             @for (media of filtered(); track media.mediaId) {
-              <mat-card class="media-card">
-                <div class="media-preview" [class.image]="media.fileType === 'Image'">
+              <mat-card class="media-list__card">
+                <div class="media-list__preview" [class.media-list__preview--image]="media.fileType === 'Image'">
                   @if (media.thumbnailUrl) {
                     <img [src]="media.thumbnailUrl" [alt]="media.fileName">
                   } @else {
@@ -51,8 +51,8 @@ import { Media, MediaType } from '../../models';
                   }
                 </div>
                 <mat-card-content>
-                  <p class="media-name">{{ media.fileName }}</p>
-                  <p class="media-info">{{ formatFileSize(media.fileSize) }}</p>
+                  <p class="media-list__name">{{ media.fileName }}</p>
+                  <p class="media-list__info">{{ formatFileSize(media.fileSize) }}</p>
                 </mat-card-content>
                 <mat-card-actions>
                   <button mat-icon-button (click)="download(media)"><mat-icon>download</mat-icon></button>
@@ -69,14 +69,14 @@ import { Media, MediaType } from '../../models';
     </mat-card>
   `,
   styles: [`
-    .search-field { width: 100%; max-width: 400px; margin-bottom: 16px; }
-    .media-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px; }
-    .media-card { overflow: hidden; }
-    .media-preview { height: 150px; display: flex; align-items: center; justify-content: center; background: #f5f5f5; }
-    .media-preview.image img { width: 100%; height: 100%; object-fit: cover; }
-    .media-preview mat-icon { font-size: 48px; width: 48px; height: 48px; color: rgba(0,0,0,0.38); }
-    .media-name { font-size: 14px; margin: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .media-info { font-size: 12px; color: rgba(0,0,0,0.6); margin: 4px 0 0; }
+    .media-list__search-field { width: 100%; max-width: 400px; margin-bottom: 16px; }
+    .media-list__grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px; }
+    .media-list__card { overflow: hidden; }
+    .media-list__preview { height: 150px; display: flex; align-items: center; justify-content: center; background: #f5f5f5; }
+    .media-list__preview--image img { width: 100%; height: 100%; object-fit: cover; }
+    .media-list__preview mat-icon { font-size: 48px; width: 48px; height: 48px; color: rgba(0,0,0,0.38); }
+    .media-list__name { font-size: 14px; margin: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .media-list__info { font-size: 12px; color: rgba(0,0,0,0.6); margin: 4px 0 0; }
   `]
 })
 export class MediaListComponent implements OnInit {

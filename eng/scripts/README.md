@@ -4,558 +4,780 @@ This directory contains automation scripts to help with common development tasks
 
 ## Table of Contents
 
+- [Quick Start](#quick-start)
 - [Available Scripts](#available-scripts)
+  - [Setup Scripts](#setup-scripts)
   - [Build Scripts](#build-scripts)
-  - [Test Scripts](#test-scripts)
-  - [Database Scripts](#database-scripts)
   - [Development Scripts](#development-scripts)
-  - [Deployment Scripts](#deployment-scripts)
-- [Script Usage Examples](#script-usage-examples)
+  - [Frontend Scripts](#frontend-scripts)
+  - [Storybook Scripts](#storybook-scripts)
+  - [Database Scripts](#database-scripts)
+  - [Test Scripts](#test-scripts)
+- [Platform-Specific Usage](#platform-specific-usage)
+- [Examples](#examples)
+- [Troubleshooting](#troubleshooting)
+
+---
+
+## Quick Start
+
+### First-Time Setup
+
+**Windows:**
+```cmd
+eng\scripts\setup.cmd
+```
+
+**Linux/Mac/Git Bash:**
+```bash
+./eng/scripts/setup.sh
+```
+
+This will:
+1. Restore all .NET dependencies
+2. Install frontend npm packages
+3. Build the entire solution
+4. Update the database to the latest migration
+
+### Running the Application
+
+After setup, start the development servers:
+
+**Windows - Terminal 1 (API):**
+```cmd
+eng\scripts\api-dev.cmd
+```
+
+**Windows - Terminal 2 (Frontend):**
+```cmd
+eng\scripts\frontend-dev.cmd
+```
+
+**Linux/Mac/Git Bash - Terminal 1 (API):**
+```bash
+./eng/scripts/api-dev.sh
+```
+
+**Linux/Mac/Git Bash - Terminal 2 (Frontend):**
+```bash
+./eng/scripts/frontend-dev.sh
+```
 
 ---
 
 ## Available Scripts
 
-Currently, this repository uses .NET CLI commands and npm scripts rather than standalone script files. Below is a comprehensive guide to all available commands.
+All scripts are available in both Windows (`.cmd`) and Unix (`.sh`) formats.
+
+| Script | Windows | Linux/Mac/Bash | Description |
+|--------|---------|----------------|-------------|
+| **Setup** | `setup.cmd` | `setup.sh` | Complete environment setup |
+| **Build** | `build.cmd` | `build.sh` | Build entire solution |
+| **Test** | `test.cmd` | `test.sh` | Run all tests |
+| **API Dev** | `api-dev.cmd` | `api-dev.sh` | Start API development server |
+| **Frontend Install** | `frontend-install.cmd` | `frontend-install.sh` | Install frontend dependencies |
+| **Frontend Dev** | `frontend-dev.cmd` | `frontend-dev.sh` | Start frontend dev server |
+| **Frontend Build** | `frontend-build.cmd` | `frontend-build.sh` | Build frontend for production |
+| **Storybook Dev** | `storybook-dev.cmd` | `storybook-dev.sh` | Start Storybook server |
+| **Storybook Build** | `storybook-build.cmd` | `storybook-build.sh` | Build Storybook static site |
+| **DB Migrate** | `db-migrate.cmd` | `db-migrate.sh` | Create database migration |
+| **DB Update** | `db-update.cmd` | `db-update.sh` | Apply database migrations |
+
+---
+
+### Setup Scripts
+
+#### setup - Complete Environment Setup
+
+Sets up the entire development environment from scratch.
+
+**Windows:**
+```cmd
+eng\scripts\setup.cmd
+```
+
+**Linux/Mac/Git Bash:**
+```bash
+./eng/scripts/setup.sh
+```
+
+**What it does:**
+- Restores all NuGet packages
+- Installs all npm dependencies
+- Builds the solution in Debug mode
+- Applies all database migrations
+
+**When to use:**
+- First time setting up the project
+- After cloning the repository
+- When switching branches with major changes
+
+---
 
 ### Build Scripts
 
-#### Build Entire Solution
-**Command (PowerShell/Bash):**
-```bash
-dotnet build StartupStarter.sln
+#### build - Build Entire Solution
+
+Cleans, restores, and builds the entire .NET solution.
+
+**Windows:**
+```cmd
+eng\scripts\build.cmd
 ```
 
-**Description:** Builds the entire solution including all projects (Core, Infrastructure, API, WebApp).
-
-**Example Usage:**
+**Linux/Mac/Git Bash:**
 ```bash
-# From repository root
-dotnet build StartupStarter.sln --configuration Release
+./eng/scripts/build.sh
 ```
 
----
+**What it does:**
+- Cleans previous build artifacts
+- Restores NuGet packages
+- Builds all projects in Release mode
 
-#### Build Specific Project
-**Command (PowerShell/Bash):**
-```bash
-dotnet build src/StartupStarter.Api/StartupStarter.Api.csproj
-```
-
-**Description:** Builds a specific project in the solution.
-
-**Example Usage:**
-```bash
-# Build only the API project
-dotnet build src/StartupStarter.Api/StartupStarter.Api.csproj
-
-# Build only the Core project
-dotnet build src/StartupStarter.Core/StartupStarter.Core.csproj
-```
-
----
-
-#### Clean Build Artifacts
-**Command (PowerShell/Bash):**
-```bash
-dotnet clean StartupStarter.sln
-```
-
-**Description:** Removes all build outputs and intermediate files.
-
-**Example Usage:**
-```bash
-# Clean and rebuild
-dotnet clean StartupStarter.sln
-dotnet build StartupStarter.sln
-```
-
----
-
-### Test Scripts
-
-#### Run All Tests
-**Command (PowerShell/Bash):**
-```bash
-dotnet test StartupStarter.sln
-```
-
-**Description:** Runs all unit and integration tests in the solution.
-
-**Example Usage:**
-```bash
-# Run all tests with verbose output
-dotnet test StartupStarter.sln --verbosity normal
-
-# Run tests and generate code coverage
-dotnet test StartupStarter.sln --collect:"XPlat Code Coverage"
-```
-
----
-
-#### Run Core Tests
-**Command (PowerShell/Bash):**
-```bash
-dotnet test tests/StartupStarter.Core.Tests/StartupStarter.Core.Tests.csproj
-```
-
-**Description:** Runs only the Core layer unit tests.
-
-**Example Usage:**
-```bash
-dotnet test tests/StartupStarter.Core.Tests/StartupStarter.Core.Tests.csproj --logger "console;verbosity=detailed"
-```
-
----
-
-#### Run API Tests
-**Command (PowerShell/Bash):**
-```bash
-dotnet test tests/StartupStarter.Api.Tests/StartupStarter.Api.Tests.csproj
-```
-
-**Description:** Runs only the API layer integration tests.
-
-**Example Usage:**
-```bash
-dotnet test tests/StartupStarter.Api.Tests/StartupStarter.Api.Tests.csproj
-```
-
----
-
-### Database Scripts
-
-#### Add Migration
-**Command (PowerShell/Bash):**
-```bash
-dotnet ef migrations add <MigrationName> --project src/StartupStarter.Infrastructure --startup-project src/StartupStarter.Api
-```
-
-**Description:** Creates a new Entity Framework Core migration.
-
-**Example Usage:**
-```bash
-# Add a new migration for account features
-dotnet ef migrations add AddAccountManagement --project src/StartupStarter.Infrastructure --startup-project src/StartupStarter.Api
-
-# Add migration with specific context
-dotnet ef migrations add InitialCreate --project src/StartupStarter.Infrastructure --startup-project src/StartupStarter.Api --context StartupStarterDbContext
-```
-
----
-
-#### Update Database
-**Command (PowerShell/Bash):**
-```bash
-dotnet ef database update --project src/StartupStarter.Infrastructure --startup-project src/StartupStarter.Api
-```
-
-**Description:** Applies pending migrations to the database.
-
-**Example Usage:**
-```bash
-# Update to latest migration
-dotnet ef database update --project src/StartupStarter.Infrastructure --startup-project src/StartupStarter.Api
-
-# Update to specific migration
-dotnet ef database update MigrationName --project src/StartupStarter.Infrastructure --startup-project src/StartupStarter.Api
-
-# Rollback all migrations
-dotnet ef database update 0 --project src/StartupStarter.Infrastructure --startup-project src/StartupStarter.Api
-```
-
----
-
-#### Remove Last Migration
-**Command (PowerShell/Bash):**
-```bash
-dotnet ef migrations remove --project src/StartupStarter.Infrastructure --startup-project src/StartupStarter.Api
-```
-
-**Description:** Removes the last migration that hasn't been applied to the database.
-
-**Example Usage:**
-```bash
-dotnet ef migrations remove --project src/StartupStarter.Infrastructure --startup-project src/StartupStarter.Api --force
-```
-
----
-
-#### Generate SQL Script from Migrations
-**Command (PowerShell/Bash):**
-```bash
-dotnet ef migrations script --project src/StartupStarter.Infrastructure --startup-project src/StartupStarter.Api --output migrations.sql
-```
-
-**Description:** Generates a SQL script from migrations for manual deployment.
-
-**Example Usage:**
-```bash
-# Generate script for all migrations
-dotnet ef migrations script --project src/StartupStarter.Infrastructure --startup-project src/StartupStarter.Api --output migrations.sql
-
-# Generate script from specific migration to latest
-dotnet ef migrations script InitialCreate --project src/StartupStarter.Infrastructure --startup-project src/StartupStarter.Api --output update.sql
-
-# Generate idempotent script (can be run multiple times)
-dotnet ef migrations script --project src/StartupStarter.Infrastructure --startup-project src/StartupStarter.Api --idempotent --output migrations.sql
-```
+**When to use:**
+- Before committing code
+- After major code changes
+- To verify solution compiles
 
 ---
 
 ### Development Scripts
 
-#### Run API Server
-**Command (PowerShell/Bash):**
-```bash
-dotnet run --project src/StartupStarter.Api/StartupStarter.Api.csproj
+#### api-dev - Start API Development Server
+
+Starts the ASP.NET Core API with hot reload enabled.
+
+**Windows:**
+```cmd
+eng\scripts\api-dev.cmd
 ```
 
-**Description:** Runs the ASP.NET Core API in development mode.
-
-**Example Usage:**
+**Linux/Mac/Git Bash:**
 ```bash
-# Run with specific environment
-dotnet run --project src/StartupStarter.Api/StartupStarter.Api.csproj --environment Development
+./eng/scripts/api-dev.sh
+```
 
-# Run and watch for changes
-dotnet watch run --project src/StartupStarter.Api/StartupStarter.Api.csproj
+**What it does:**
+- Starts the API (typically on https://localhost:7001)
+- Enables hot reload (auto-recompile on changes)
+- Shows console logging
+
+**When to use:**
+- Daily development
+- Testing API endpoints
+- Making backend changes
+
+---
+
+### Frontend Scripts
+
+#### frontend-install - Install Frontend Dependencies
+
+Installs all npm packages for the Angular application.
+
+**Windows:**
+```cmd
+eng\scripts\frontend-install.cmd
+```
+
+**Linux/Mac/Git Bash:**
+```bash
+./eng/scripts/frontend-install.sh
+```
+
+**What it does:**
+- Runs `npm install` in WebApp directory
+- Installs Angular CLI and dependencies
+
+**When to use:**
+- After cloning repository
+- After package.json changes
+- When dependencies are out of sync
+
+---
+
+#### frontend-dev - Start Frontend Development Server
+
+Starts the Angular development server.
+
+**Windows:**
+```cmd
+eng\scripts\frontend-dev.cmd
+```
+
+**Linux/Mac/Git Bash:**
+```bash
+./eng/scripts/frontend-dev.sh
+```
+
+**What it does:**
+- Starts Angular dev server on http://localhost:4200
+- Enables hot reload
+- Auto-refreshes browser on changes
+
+**When to use:**
+- Daily frontend development
+- Testing UI changes
+- Working on Angular components
+
+---
+
+#### frontend-build - Build Frontend for Production
+
+Builds the Angular application for production deployment.
+
+**Windows:**
+```cmd
+eng\scripts\frontend-build.cmd
+```
+
+**Linux/Mac/Git Bash:**
+```bash
+./eng/scripts/frontend-build.sh
+```
+
+**What it does:**
+- Builds with production optimizations
+- Minifies JavaScript and CSS
+- Outputs to `src/StartupStarter.WebApp/dist`
+
+**When to use:**
+- Before production deployment
+- Testing production builds
+- Performance testing
+
+---
+
+### Storybook Scripts
+
+#### storybook-dev - Start Storybook Development Server
+
+Starts the Storybook development server for component documentation.
+
+**Windows:**
+```cmd
+eng\scripts\storybook-dev.cmd
+```
+
+**Linux/Mac/Git Bash:**
+```bash
+./eng/scripts/storybook-dev.sh
+```
+
+**What it does:**
+- Starts Storybook on http://localhost:6006
+- Shows all documented UI components
+- Enables interactive component testing
+
+**When to use:**
+- Developing UI components
+- Documenting new components
+- Reviewing component library
+
+---
+
+#### storybook-build - Build Storybook Static Site
+
+Builds a static version of Storybook for deployment.
+
+**Windows:**
+```cmd
+eng\scripts\storybook-build.cmd
+```
+
+**Linux/Mac/Git Bash:**
+```bash
+./eng/scripts/storybook-build.sh
+```
+
+**What it does:**
+- Builds static Storybook site
+- Outputs to `src/StartupStarter.WebApp/storybook-static`
+- Can be deployed to static hosting
+
+**When to use:**
+- Deploying component documentation
+- Sharing components with team
+- Design reviews
+
+---
+
+### Database Scripts
+
+#### db-migrate - Create New Database Migration
+
+Creates a new Entity Framework migration.
+
+**Windows:**
+```cmd
+eng\scripts\db-migrate.cmd <MigrationName>
+```
+
+**Linux/Mac/Git Bash:**
+```bash
+./eng/scripts/db-migrate.sh <MigrationName>
+```
+
+**Examples:**
+```bash
+# Windows
+eng\scripts\db-migrate.cmd AddUserTable
+
+# Linux/Mac/Bash
+./eng/scripts/db-migrate.sh AddUserTable
+```
+
+**What it does:**
+- Generates new migration file
+- Creates Up and Down methods
+- Updates model snapshot
+
+**When to use:**
+- After adding/modifying entities
+- Changing database schema
+- Before deploying schema changes
+
+---
+
+#### db-update - Apply Database Migrations
+
+Applies all pending migrations to the database.
+
+**Windows:**
+```cmd
+eng\scripts\db-update.cmd
+```
+
+**Linux/Mac/Git Bash:**
+```bash
+./eng/scripts/db-update.sh
+```
+
+**What it does:**
+- Connects to database
+- Applies unapplied migrations
+- Updates database schema
+
+**When to use:**
+- After creating new migrations
+- After pulling migrations from team
+- Setting up new environment
+
+---
+
+### Test Scripts
+
+#### test - Run All Tests
+
+Runs all unit and integration tests with code coverage.
+
+**Windows:**
+```cmd
+eng\scripts\test.cmd
+```
+
+**Linux/Mac/Git Bash:**
+```bash
+./eng/scripts/test.sh
+```
+
+**What it does:**
+- Runs all tests in solution
+- Generates code coverage reports
+- Shows test results
+
+**When to use:**
+- Before committing code
+- Before creating pull requests
+- During CI/CD pipeline
+- Verifying bug fixes
+
+---
+
+## Platform-Specific Usage
+
+### Windows
+
+Use `.cmd` scripts from Command Prompt or PowerShell:
+
+```cmd
+# From project root
+eng\scripts\build.cmd
+eng\scripts\test.cmd
+eng\scripts\api-dev.cmd
+```
+
+### Linux/Mac
+
+Make scripts executable first (one-time setup):
+
+```bash
+chmod +x eng/scripts/*.sh
+```
+
+Then run:
+
+```bash
+./eng/scripts/build.sh
+./eng/scripts/test.sh
+./eng/scripts/api-dev.sh
+```
+
+### Git Bash (Windows)
+
+Use the `.sh` scripts:
+
+```bash
+./eng/scripts/build.sh
+./eng/scripts/test.sh
+./eng/scripts/api-dev.sh
 ```
 
 ---
 
-#### Run Angular Admin Frontend
-**Command (PowerShell/Bash):**
-```bash
-cd src/StartupStarter.WebApp
-ng serve
+## Examples
+
+### Full Development Workflow
+
+**Starting development on a new feature:**
+
+**Windows:**
+```cmd
+REM Update codebase
+git pull origin main
+
+REM Setup environment
+eng\scripts\setup.cmd
+
+REM Run tests
+eng\scripts\test.cmd
+
+REM Start API (Terminal 1)
+eng\scripts\api-dev.cmd
+
+REM Start Frontend (Terminal 2)
+eng\scripts\frontend-dev.cmd
 ```
 
-**Description:** Starts the Angular development server for the admin frontend.
-
-**Example Usage:**
+**Linux/Mac/Git Bash:**
 ```bash
-# Run on default port (4200)
-cd src/StartupStarter.WebApp
-ng serve
+# Update codebase
+git pull origin main
 
-# Run on custom port
-cd src/StartupStarter.WebApp
-ng serve --port 4300
+# Setup environment
+./eng/scripts/setup.sh
 
-# Run with proxy to API
-cd src/StartupStarter.WebApp
-ng serve --proxy-config proxy.conf.json
+# Run tests
+./eng/scripts/test.sh
 
-# Run and open in browser
-cd src/StartupStarter.WebApp
-ng serve --open
+# Start API (Terminal 1)
+./eng/scripts/api-dev.sh
+
+# Start Frontend (Terminal 2)
+./eng/scripts/frontend-dev.sh
 ```
 
 ---
 
-#### Install Frontend Dependencies
-**Command (PowerShell/Bash):**
-```bash
-cd src/StartupStarter.WebApp
-npm install
+### Adding New Database Entity
+
+**Example: Adding a Product entity**
+
+**Windows:**
+```cmd
+REM 1. Create entity class in Core project
+REM 2. Add DbSet to DbContext
+REM 3. Create migration
+eng\scripts\db-migrate.cmd AddProductEntity
+
+REM 4. Review migration
+REM    (Check src\StartupStarter.Infrastructure\Migrations\)
+
+REM 5. Apply to database
+eng\scripts\db-update.cmd
+
+REM 6. Run tests
+eng\scripts\test.cmd
 ```
 
-**Description:** Installs all npm packages for the Angular application.
-
-**Example Usage:**
+**Linux/Mac/Git Bash:**
 ```bash
-cd src/StartupStarter.WebApp
-npm install
+# 1-2. Create entity and DbSet
+# 3. Create migration
+./eng/scripts/db-migrate.sh AddProductEntity
 
-# Clean install (removes node_modules first)
+# 4. Review migration
+
+# 5. Apply to database
+./eng/scripts/db-update.sh
+
+# 6. Run tests
+./eng/scripts/test.sh
+```
+
+---
+
+### Production Deployment
+
+**Windows:**
+```cmd
+REM Run tests
+eng\scripts\test.cmd
+
+REM Build solution
+eng\scripts\build.cmd
+
+REM Build frontend
+eng\scripts\frontend-build.cmd
+
+REM Build Storybook
+eng\scripts\storybook-build.cmd
+
+REM Outputs:
+REM - Frontend: src\StartupStarter.WebApp\dist
+REM - Storybook: src\StartupStarter.WebApp\storybook-static
+```
+
+**Linux/Mac/Git Bash:**
+```bash
+# Run tests
+./eng/scripts/test.sh
+
+# Build solution
+./eng/scripts/build.sh
+
+# Build frontend
+./eng/scripts/frontend-build.sh
+
+# Build Storybook
+./eng/scripts/storybook-build.sh
+```
+
+---
+
+### Working on UI Components
+
+**Windows:**
+```cmd
+REM Terminal 1: Storybook
+eng\scripts\storybook-dev.cmd
+
+REM Terminal 2: Frontend
+eng\scripts\frontend-dev.cmd
+
+REM View:
+REM - Storybook: http://localhost:6006
+REM - App: http://localhost:4200
+```
+
+**Linux/Mac/Git Bash:**
+```bash
+# Terminal 1: Storybook
+./eng/scripts/storybook-dev.sh
+
+# Terminal 2: Frontend
+./eng/scripts/frontend-dev.sh
+```
+
+---
+
+### Quick Test Before Commit
+
+**Windows:**
+```cmd
+eng\scripts\build.cmd && eng\scripts\test.cmd
+```
+
+**Linux/Mac/Git Bash:**
+```bash
+./eng/scripts/build.sh && ./eng/scripts/test.sh
+```
+
+---
+
+## Troubleshooting
+
+### Script Won't Execute (Unix/Mac)
+
+**Error:** "Permission denied"
+
+**Solution:**
+```bash
+chmod +x eng/scripts/*.sh
+```
+
+---
+
+### Build Fails
+
+**Try cleaning and restoring:**
+
+**Windows:**
+```cmd
+dotnet clean StartupStarter.sln
+dotnet restore StartupStarter.sln
+eng\scripts\build.cmd
+```
+
+**Linux/Mac:**
+```bash
+dotnet clean StartupStarter.sln
+dotnet restore StartupStarter.sln
+./eng/scripts/build.sh
+```
+
+---
+
+### Frontend Won't Start
+
+**Clean install dependencies:**
+
+**Windows:**
+```cmd
+cd src\StartupStarter.WebApp
+rmdir /s /q node_modules
+del package-lock.json
+cd ..\..
+eng\scripts\frontend-install.cmd
+```
+
+**Linux/Mac:**
+```bash
 cd src/StartupStarter.WebApp
 rm -rf node_modules package-lock.json
-npm install
-```
-
----
-
-#### Build Angular Application
-**Command (PowerShell/Bash):**
-```bash
-cd src/StartupStarter.WebApp
-ng build
-```
-
-**Description:** Builds the Angular application for production.
-
-**Example Usage:**
-```bash
-# Production build
-cd src/StartupStarter.WebApp
-ng build --configuration production
-
-# Development build with source maps
-cd src/StartupStarter.WebApp
-ng build --configuration development
-```
-
----
-
-#### Run All Services (API + Frontend)
-**Command (PowerShell - Run in separate terminals):**
-```powershell
-# Terminal 1: API
-dotnet run --project src/StartupStarter.Api/StartupStarter.Api.csproj
-
-# Terminal 2: Frontend
-cd src/StartupStarter.WebApp
-ng serve
-```
-
-**Command (Bash - Run in separate terminals):**
-```bash
-# Terminal 1: API
-dotnet run --project src/StartupStarter.Api/StartupStarter.Api.csproj
-
-# Terminal 2: Frontend
-cd src/StartupStarter.WebApp && ng serve
-```
-
-**Description:** Runs both the API and frontend development servers.
-
----
-
-#### Format Code
-**Command (PowerShell/Bash):**
-```bash
-# Format .NET code
-dotnet format StartupStarter.sln
-
-# Format Angular code
-cd src/StartupStarter.WebApp
-npm run format
-```
-
-**Description:** Formats code according to project style guidelines.
-
-**Example Usage:**
-```bash
-# Format with verification
-dotnet format StartupStarter.sln --verify-no-changes
-
-# Format specific project
-dotnet format src/StartupStarter.Core/StartupStarter.Core.csproj
-```
-
----
-
-### Deployment Scripts
-
-#### Publish API
-**Command (PowerShell/Bash):**
-```bash
-dotnet publish src/StartupStarter.Api/StartupStarter.Api.csproj --configuration Release --output ./publish/api
-```
-
-**Description:** Publishes the API for deployment.
-
-**Example Usage:**
-```bash
-# Publish for production
-dotnet publish src/StartupStarter.Api/StartupStarter.Api.csproj --configuration Release --output ./publish/api
-
-# Publish self-contained for Windows
-dotnet publish src/StartupStarter.Api/StartupStarter.Api.csproj --configuration Release --runtime win-x64 --self-contained --output ./publish/api-win
-
-# Publish self-contained for Linux
-dotnet publish src/StartupStarter.Api/StartupStarter.Api.csproj --configuration Release --runtime linux-x64 --self-contained --output ./publish/api-linux
-```
-
----
-
-#### Build Docker Image (if Dockerfile exists)
-**Command (PowerShell/Bash):**
-```bash
-docker build -t startupstarter-api:latest -f src/StartupStarter.Api/Dockerfile .
-```
-
-**Description:** Builds a Docker image for the API.
-
-**Example Usage:**
-```bash
-# Build with tag
-docker build -t startupstarter-api:1.0.0 -f src/StartupStarter.Api/Dockerfile .
-
-# Build and run
-docker build -t startupstarter-api:latest -f src/StartupStarter.Api/Dockerfile .
-docker run -p 5000:80 startupstarter-api:latest
-```
-
----
-
-## Script Usage Examples
-
-### Complete Development Workflow
-
-**PowerShell:**
-```powershell
-# 1. Restore dependencies
-dotnet restore StartupStarter.sln
-cd src/StartupStarter.WebApp
-npm install
 cd ../..
-
-# 2. Build everything
-dotnet build StartupStarter.sln
-
-# 3. Run tests
-dotnet test StartupStarter.sln
-
-# 4. Update database
-dotnet ef database update --project src/StartupStarter.Infrastructure --startup-project src/StartupStarter.Api
-
-# 5. Run services (in separate terminals)
-# Terminal 1:
-dotnet run --project src/StartupStarter.Api/StartupStarter.Api.csproj
-
-# Terminal 2:
-cd src/StartupStarter.WebApp
-ng serve
-```
-
-**Bash:**
-```bash
-# 1. Restore dependencies
-dotnet restore StartupStarter.sln
-cd src/StartupStarter.WebApp && npm install && cd ../..
-
-# 2. Build everything
-dotnet build StartupStarter.sln
-
-# 3. Run tests
-dotnet test StartupStarter.sln
-
-# 4. Update database
-dotnet ef database update --project src/StartupStarter.Infrastructure --startup-project src/StartupStarter.Api
-
-# 5. Run services (in separate terminals)
-# Terminal 1:
-dotnet run --project src/StartupStarter.Api/StartupStarter.Api.csproj
-
-# Terminal 2:
-cd src/StartupStarter.WebApp && ng serve
+./eng/scripts/frontend-install.sh
 ```
 
 ---
 
-### Production Deployment Workflow
+### Database Connection Errors
 
-**PowerShell:**
-```powershell
-# 1. Run all tests
-dotnet test StartupStarter.sln --configuration Release
+**Check connection string in:**
+- `src/StartupStarter.Api/appsettings.Development.json`
 
-# 2. Build frontend for production
-cd src/StartupStarter.WebApp
-ng build --configuration production
-cd ../..
-
-# 3. Publish API
-dotnet publish src/StartupStarter.Api/StartupStarter.Api.csproj --configuration Release --output ./publish/api
-
-# 4. Generate migration scripts
-dotnet ef migrations script --project src/StartupStarter.Infrastructure --startup-project src/StartupStarter.Api --idempotent --output ./publish/migrations.sql
-```
-
-**Bash:**
+**Then update database:**
 ```bash
-# 1. Run all tests
-dotnet test StartupStarter.sln --configuration Release
+# Windows
+eng\scripts\db-update.cmd
 
-# 2. Build frontend for production
-cd src/StartupStarter.WebApp && ng build --configuration production && cd ../..
-
-# 3. Publish API
-dotnet publish src/StartupStarter.Api/StartupStarter.Api.csproj --configuration Release --output ./publish/api
-
-# 4. Generate migration scripts
-dotnet ef migrations script --project src/StartupStarter.Infrastructure --startup-project src/StartupStarter.Api --idempotent --output ./publish/migrations.sql
+# Linux/Mac
+./eng/scripts/db-update.sh
 ```
 
 ---
 
-## Creating Custom Scripts
+### Storybook Build Fails
 
-If you want to create custom automation scripts, add them to this directory:
+**Common issue:** CSS/SCSS compatibility
 
-- **PowerShell scripts:** Use `.ps1` extension
-- **Bash scripts:** Use `.sh` extension
-- **Batch scripts:** Use `.bat` or `.cmd` extension
+**Solution:** The project includes a simplified CSS file for Storybook. If you encounter build errors:
 
-### Example PowerShell Script Template
+1. Check [.storybook/preview-styles.css](../../src/StartupStarter.WebApp/projects/startupstarter-admin/.storybook/preview-styles.css)
+2. Ensure fonts are loading in [.storybook/main.ts](../../src/StartupStarter.WebApp/projects/startupstarter-admin/.storybook/main.ts)
 
-Create `scripts/build-all.ps1`:
+---
+
+## Advanced Tips
+
+### Running Multiple Services (PowerShell)
+
 ```powershell
-#!/usr/bin/env pwsh
+# Start API in new window
+Start-Process pwsh -ArgumentList "-NoExit", "-Command", "eng\scripts\api-dev.cmd"
 
-Write-Host "Building StartupStarter Solution..." -ForegroundColor Green
+# Start Frontend in new window
+Start-Process pwsh -ArgumentList "-NoExit", "-Command", "eng\scripts\frontend-dev.cmd"
 
-# Clean
-Write-Host "Cleaning..." -ForegroundColor Yellow
-dotnet clean StartupStarter.sln
-
-# Restore
-Write-Host "Restoring packages..." -ForegroundColor Yellow
-dotnet restore StartupStarter.sln
-
-# Build
-Write-Host "Building..." -ForegroundColor Yellow
-dotnet build StartupStarter.sln --configuration Release
-
-Write-Host "Build complete!" -ForegroundColor Green
+# Start Storybook in new window
+Start-Process pwsh -ArgumentList "-NoExit", "-Command", "eng\scripts\storybook-dev.cmd"
 ```
 
-### Example Bash Script Template
+### Running Multiple Services (Bash)
 
-Create `scripts/build-all.sh`:
+```bash
+# Start all in background
+./eng/scripts/api-dev.sh &
+./eng/scripts/frontend-dev.sh &
+./eng/scripts/storybook-dev.sh &
+
+# View running jobs
+jobs
+
+# Kill all background jobs
+kill $(jobs -p)
+```
+
+---
+
+## Script Structure
+
+Each script follows this pattern:
+
+**Bash (.sh):**
 ```bash
 #!/bin/bash
+set -e  # Exit on error
 
-echo "Building StartupStarter Solution..."
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ROOT_DIR="$(cd "$SCRIPT_DIR/../.." && pwd)"
 
-# Clean
-echo "Cleaning..."
-dotnet clean StartupStarter.sln
-
-# Restore
-echo "Restoring packages..."
-dotnet restore StartupStarter.sln
-
-# Build
-echo "Building..."
-dotnet build StartupStarter.sln --configuration Release
-
-echo "Build complete!"
+cd "$ROOT_DIR"
+# ... commands ...
 ```
 
-Make bash scripts executable:
-```bash
-chmod +x scripts/build-all.sh
+**Windows (.cmd):**
+```cmd
+@echo off
+setlocal
+
+set SCRIPT_DIR=%~dp0
+set ROOT_DIR=%SCRIPT_DIR%..\..
+
+cd /d "%ROOT_DIR%"
+REM ... commands ...
+
+endlocal
 ```
-
----
-
-## Notes
-
-- All paths are relative to the repository root
-- For PowerShell scripts, you may need to set execution policy: `Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser`
-- For bash scripts on Windows, use Git Bash or WSL
-- Always test scripts in a development environment before running in production
-- Database commands require proper connection strings in `appsettings.json`
 
 ---
 
 ## Contributing
 
 When adding new scripts:
-1. Place them in the `scripts/` directory
-2. Update this README with documentation
-3. Include usage examples
-4. Test on both Windows and Linux/Mac if possible
+
+1. Create both `.sh` and `.cmd` versions
+2. Update this README with:
+   - Description
+   - Usage examples
+   - When to use
+3. Test on Windows and Linux/Mac
+4. Follow naming conventions
+
+---
+
+## Prerequisites
+
+Ensure you have installed:
+
+- [.NET SDK 8.0+](https://dotnet.microsoft.com/download)
+- [Node.js 18+](https://nodejs.org/)
+- [npm 10+](https://www.npmjs.com/)
+- [Git](https://git-scm.com/)
+
+Optional:
+- [Git Bash](https://git-scm.com/) (for Windows users who prefer bash)
+- [Visual Studio Code](https://code.visualstudio.com/)
+
+---
+
+## Support
+
+For issues:
+1. Check [Troubleshooting](#troubleshooting)
+2. Verify you're in project root
+3. Ensure prerequisites are installed
+4. Check script permissions (Unix/Mac)
+
+For project-specific issues, refer to the main project README.

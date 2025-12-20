@@ -1,0 +1,47 @@
+StartupStarter Available Scripts
+================================
+
+SETUP & BUILD
+-------------
+setup.cmd / setup.sh              - Complete development environment setup
+build.cmd / build.sh              - Build entire solution
+
+DEVELOPMENT
+-----------
+api-dev.cmd / api-dev.sh          - Start API development server with hot reload
+frontend-dev.cmd / frontend-dev.sh - Start Angular dev server (http://localhost:4200)
+
+FRONTEND
+--------
+frontend-install.cmd / frontend-install.sh - Install npm dependencies
+frontend-build.cmd / frontend-build.sh     - Build frontend for production
+
+STORYBOOK
+---------
+storybook-dev.cmd / storybook-dev.sh       - Start Storybook (http://localhost:6006)
+storybook-build.cmd / storybook-build.sh   - Build Storybook static site
+
+DATABASE
+--------
+db-migrate.cmd / db-migrate.sh <Name>      - Create new EF migration
+db-update.cmd / db-update.sh               - Apply pending migrations
+
+TESTING
+-------
+test.cmd / test.sh                - Run all tests with code coverage
+
+QUICK START
+-----------
+1. First time setup:
+   Windows:     eng\scripts\setup.cmd
+   Unix/Mac:    ./eng/scripts/setup.sh
+
+2. Run API (Terminal 1):
+   Windows:     eng\scripts\api-dev.cmd
+   Unix/Mac:    ./eng/scripts/api-dev.sh
+
+3. Run Frontend (Terminal 2):
+   Windows:     eng\scripts\frontend-dev.cmd
+   Unix/Mac:    ./eng/scripts/frontend-dev.sh
+
+For detailed documentation, see README.md

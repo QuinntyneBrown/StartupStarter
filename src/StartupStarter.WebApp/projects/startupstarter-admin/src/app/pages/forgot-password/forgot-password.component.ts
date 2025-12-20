@@ -23,8 +23,8 @@ import { AuthService } from '../../services';
     MatProgressSpinnerModule
   ],
   template: `
-    <div class="forgot-password-container">
-      <mat-card class="forgot-password-card">
+    <div class="forgot-password">
+      <mat-card class="forgot-password__card">
         <mat-card-header>
           <mat-card-title>Forgot Password</mat-card-title>
           <mat-card-subtitle>Enter your email to reset your password</mat-card-subtitle>
@@ -32,17 +32,17 @@ import { AuthService } from '../../services';
 
         <mat-card-content>
           @if (successMessage()) {
-            <div class="success-message">
+            <div class="forgot-password__success-message">
               <mat-icon>check_circle</mat-icon>
               {{ successMessage() }}
             </div>
           } @else {
             @if (errorMessage()) {
-              <div class="error-message">{{ errorMessage() }}</div>
+              <div class="forgot-password__error-message">{{ errorMessage() }}</div>
             }
 
             <form [formGroup]="form" (ngSubmit)="onSubmit()">
-              <mat-form-field appearance="outline" class="full-width">
+              <mat-form-field appearance="outline" class="forgot-password__field">
                 <mat-label>Email</mat-label>
                 <input matInput type="email" formControlName="email" placeholder="you@example.com">
                 <mat-icon matSuffix>email</mat-icon>
@@ -54,7 +54,7 @@ import { AuthService } from '../../services';
                 }
               </mat-form-field>
 
-              <button mat-flat-button color="primary" type="submit" class="full-width submit-btn"
+              <button mat-flat-button color="primary" type="submit" class="forgot-password__submit-btn"
                       [disabled]="isLoading() || form.invalid">
                 @if (isLoading()) {
                   <mat-spinner diameter="20"></mat-spinner>
@@ -66,14 +66,14 @@ import { AuthService } from '../../services';
           }
         </mat-card-content>
 
-        <mat-card-actions class="actions-center">
+        <mat-card-actions class="forgot-password__actions">
           <a mat-button routerLink="/login">Back to Login</a>
         </mat-card-actions>
       </mat-card>
     </div>
   `,
   styles: [`
-    .forgot-password-container {
+    .forgot-password {
       min-height: 100vh;
       display: flex;
       align-items: center;
@@ -82,7 +82,7 @@ import { AuthService } from '../../services';
       padding: 24px;
     }
 
-    .forgot-password-card {
+    .forgot-password__card {
       width: 100%;
       max-width: 400px;
       padding: 24px;
@@ -97,16 +97,17 @@ import { AuthService } from '../../services';
       margin-bottom: 8px;
     }
 
-    .full-width {
+    .forgot-password__field {
       width: 100%;
     }
 
-    .submit-btn {
+    .forgot-password__submit-btn {
+      width: 100%;
       margin-top: 16px;
       height: 48px;
     }
 
-    .error-message {
+    .forgot-password__error-message {
       background-color: #ffebee;
       color: #c62828;
       padding: 12px;
@@ -115,7 +116,7 @@ import { AuthService } from '../../services';
       font-size: 14px;
     }
 
-    .success-message {
+    .forgot-password__success-message {
       background-color: #e8f5e9;
       color: #2e7d32;
       padding: 16px;
@@ -130,7 +131,7 @@ import { AuthService } from '../../services';
       display: inline-block;
     }
 
-    .actions-center {
+    .forgot-password__actions {
       display: flex;
       justify-content: center;
     }

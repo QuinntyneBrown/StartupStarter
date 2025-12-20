@@ -22,20 +22,20 @@ import { AuthService } from '../../services';
   template: `
     <app-page-header title="Settings" subtitle="Manage your account settings" icon="settings"></app-page-header>
 
-    <div class="settings-grid">
+    <div class="settings__grid">
       <mat-card>
         <mat-card-header><mat-card-title>Profile</mat-card-title></mat-card-header>
         <mat-card-content>
           <form [formGroup]="profileForm" (ngSubmit)="saveProfile()">
-            <mat-form-field appearance="outline" class="full-width">
+            <mat-form-field appearance="outline" class="settings__field">
               <mat-label>First Name</mat-label>
               <input matInput formControlName="firstName">
             </mat-form-field>
-            <mat-form-field appearance="outline" class="full-width">
+            <mat-form-field appearance="outline" class="settings__field">
               <mat-label>Last Name</mat-label>
               <input matInput formControlName="lastName">
             </mat-form-field>
-            <mat-form-field appearance="outline" class="full-width">
+            <mat-form-field appearance="outline" class="settings__field">
               <mat-label>Email</mat-label>
               <input matInput formControlName="email" readonly>
             </mat-form-field>
@@ -47,7 +47,7 @@ import { AuthService } from '../../services';
       <mat-card>
         <mat-card-header><mat-card-title>Security</mat-card-title></mat-card-header>
         <mat-card-content>
-          <div class="security-item">
+          <div class="settings__security-item">
             <div>
               <strong>Two-Factor Authentication</strong>
               <p>Add an extra layer of security to your account</p>
@@ -57,15 +57,15 @@ import { AuthService } from '../../services';
           <mat-divider></mat-divider>
           <h4>Change Password</h4>
           <form [formGroup]="passwordForm" (ngSubmit)="changePassword()">
-            <mat-form-field appearance="outline" class="full-width">
+            <mat-form-field appearance="outline" class="settings__field">
               <mat-label>Current Password</mat-label>
               <input matInput type="password" formControlName="currentPassword">
             </mat-form-field>
-            <mat-form-field appearance="outline" class="full-width">
+            <mat-form-field appearance="outline" class="settings__field">
               <mat-label>New Password</mat-label>
               <input matInput type="password" formControlName="newPassword">
             </mat-form-field>
-            <mat-form-field appearance="outline" class="full-width">
+            <mat-form-field appearance="outline" class="settings__field">
               <mat-label>Confirm Password</mat-label>
               <input matInput type="password" formControlName="confirmPassword">
             </mat-form-field>
@@ -81,7 +81,7 @@ import { AuthService } from '../../services';
             <p>No active sessions</p>
           } @else {
             @for (session of sessions(); track session.sessionId) {
-              <div class="session-item">
+              <div class="settings__session-item">
                 <div>
                   <strong>{{ session.userAgent }}</strong>
                   <p>{{ session.ipAddress }} - {{ session.createdAt | date:'short' }}</p>
@@ -97,12 +97,12 @@ import { AuthService } from '../../services';
     </div>
   `,
   styles: [`
-    .settings-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 24px; }
-    .full-width { width: 100%; }
-    .security-item { display: flex; justify-content: space-between; align-items: center; padding: 16px 0; }
-    .security-item p { color: rgba(0,0,0,0.6); margin: 4px 0 0; }
-    .session-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid rgba(0,0,0,0.1); }
-    .session-item p { color: rgba(0,0,0,0.6); margin: 4px 0 0; font-size: 12px; }
+    .settings__grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 24px; }
+    .settings__field { width: 100%; }
+    .settings__security-item { display: flex; justify-content: space-between; align-items: center; padding: 16px 0; }
+    .settings__security-item p { color: rgba(0,0,0,0.6); margin: 4px 0 0; }
+    .settings__session-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid rgba(0,0,0,0.1); }
+    .settings__session-item p { color: rgba(0,0,0,0.6); margin: 4px 0 0; font-size: 12px; }
     h4 { margin: 24px 0 16px; }
     mat-divider { margin: 16px 0; }
   `]

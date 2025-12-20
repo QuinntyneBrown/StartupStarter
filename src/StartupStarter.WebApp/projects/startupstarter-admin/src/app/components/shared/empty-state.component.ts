@@ -9,11 +9,11 @@ import { MatButtonModule } from '@angular/material/button';
   template: `
     <div class="empty-state">
       @if (icon) {
-        <mat-icon class="empty-icon">{{ icon }}</mat-icon>
+        <mat-icon class="empty-state__icon">{{ icon }}</mat-icon>
       }
-      <h3 class="empty-title">{{ title }}</h3>
+      <h3 class="empty-state__title">{{ title }}</h3>
       @if (message) {
-        <p class="empty-message">{{ message }}</p>
+        <p class="empty-state__message">{{ message }}</p>
       }
       @if (actionLabel) {
         <button mat-flat-button color="primary" (click)="action.emit()">
@@ -32,7 +32,7 @@ import { MatButtonModule } from '@angular/material/button';
       text-align: center;
     }
 
-    .empty-icon {
+    .empty-state__icon {
       font-size: 64px;
       width: 64px;
       height: 64px;
@@ -40,14 +40,14 @@ import { MatButtonModule } from '@angular/material/button';
       margin-bottom: 16px;
     }
 
-    .empty-title {
+    .empty-state__title {
       margin: 0 0 8px 0;
       font-size: 18px;
       font-weight: 500;
       color: rgba(0, 0, 0, 0.87);
     }
 
-    .empty-message {
+    .empty-state__message {
       margin: 0 0 24px 0;
       font-size: 14px;
       color: rgba(0, 0, 0, 0.6);

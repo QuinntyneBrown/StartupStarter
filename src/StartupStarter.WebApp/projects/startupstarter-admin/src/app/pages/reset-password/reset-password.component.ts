@@ -23,8 +23,8 @@ import { AuthService } from '../../services';
     MatProgressSpinnerModule
   ],
   template: `
-    <div class="reset-password-container">
-      <mat-card class="reset-password-card">
+    <div class="reset-password">
+      <mat-card class="reset-password__card">
         <mat-card-header>
           <mat-card-title>Reset Password</mat-card-title>
           <mat-card-subtitle>Enter your new password</mat-card-subtitle>
@@ -32,20 +32,20 @@ import { AuthService } from '../../services';
 
         <mat-card-content>
           @if (successMessage()) {
-            <div class="success-message">
+            <div class="reset-password__success-message">
               <mat-icon>check_circle</mat-icon>
               {{ successMessage() }}
             </div>
-            <a mat-flat-button color="primary" routerLink="/login" class="full-width">
+            <a mat-flat-button color="primary" routerLink="/login" class="reset-password__login-btn">
               Go to Login
             </a>
           } @else {
             @if (errorMessage()) {
-              <div class="error-message">{{ errorMessage() }}</div>
+              <div class="reset-password__error-message">{{ errorMessage() }}</div>
             }
 
             <form [formGroup]="form" (ngSubmit)="onSubmit()">
-              <mat-form-field appearance="outline" class="full-width">
+              <mat-form-field appearance="outline" class="reset-password__field">
                 <mat-label>New Password</mat-label>
                 <input matInput [type]="hidePassword() ? 'password' : 'text'" formControlName="newPassword">
                 <button mat-icon-button matSuffix type="button" (click)="togglePassword()">
@@ -62,7 +62,7 @@ import { AuthService } from '../../services';
                 }
               </mat-form-field>
 
-              <mat-form-field appearance="outline" class="full-width">
+              <mat-form-field appearance="outline" class="reset-password__field">
                 <mat-label>Confirm Password</mat-label>
                 <input matInput [type]="hideConfirmPassword() ? 'password' : 'text'" formControlName="confirmPassword">
                 <button mat-icon-button matSuffix type="button" (click)="toggleConfirmPassword()">
@@ -76,7 +76,7 @@ import { AuthService } from '../../services';
                 }
               </mat-form-field>
 
-              <button mat-flat-button color="primary" type="submit" class="full-width submit-btn"
+              <button mat-flat-button color="primary" type="submit" class="reset-password__submit-btn"
                       [disabled]="isLoading() || form.invalid">
                 @if (isLoading()) {
                   <mat-spinner diameter="20"></mat-spinner>
@@ -89,7 +89,7 @@ import { AuthService } from '../../services';
         </mat-card-content>
 
         @if (!successMessage()) {
-          <mat-card-actions class="actions-center">
+          <mat-card-actions class="reset-password__actions">
             <a mat-button routerLink="/login">Back to Login</a>
           </mat-card-actions>
         }
@@ -97,7 +97,7 @@ import { AuthService } from '../../services';
     </div>
   `,
   styles: [`
-    .reset-password-container {
+    .reset-password {
       min-height: 100vh;
       display: flex;
       align-items: center;
@@ -106,7 +106,7 @@ import { AuthService } from '../../services';
       padding: 24px;
     }
 
-    .reset-password-card {
+    .reset-password__card {
       width: 100%;
       max-width: 400px;
       padding: 24px;
@@ -121,16 +121,21 @@ import { AuthService } from '../../services';
       margin-bottom: 8px;
     }
 
-    .full-width {
+    .reset-password__field {
       width: 100%;
     }
 
-    .submit-btn {
+    .reset-password__login-btn {
+      width: 100%;
+    }
+
+    .reset-password__submit-btn {
+      width: 100%;
       margin-top: 16px;
       height: 48px;
     }
 
-    .error-message {
+    .reset-password__error-message {
       background-color: #ffebee;
       color: #c62828;
       padding: 12px;
@@ -139,7 +144,7 @@ import { AuthService } from '../../services';
       font-size: 14px;
     }
 
-    .success-message {
+    .reset-password__success-message {
       background-color: #e8f5e9;
       color: #2e7d32;
       padding: 16px;
@@ -154,7 +159,7 @@ import { AuthService } from '../../services';
       display: inline-block;
     }
 
-    .actions-center {
+    .reset-password__actions {
       display: flex;
       justify-content: center;
     }

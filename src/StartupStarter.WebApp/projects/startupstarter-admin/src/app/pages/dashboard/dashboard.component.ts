@@ -36,19 +36,19 @@ interface DashboardCard {
     @if (isLoading()) {
       <app-loading-spinner message="Loading dashboard..."></app-loading-spinner>
     } @else {
-      <div class="dashboard-grid">
+      <div class="dashboard__grid">
         @for (card of cards(); track card.title) {
-          <mat-card class="dashboard-card" [style.border-left-color]="card.color">
+          <mat-card class="dashboard__card" [style.border-left-color]="card.color">
             <mat-card-content>
-              <div class="card-icon" [style.background-color]="card.color + '20'" [style.color]="card.color">
+              <div class="dashboard__card-icon" [style.background-color]="card.color + '20'" [style.color]="card.color">
                 <mat-icon>{{ card.icon }}</mat-icon>
               </div>
-              <div class="card-content">
-                <h3 class="card-value">{{ card.value }}</h3>
-                <p class="card-title">{{ card.title }}</p>
+              <div class="dashboard__card-content">
+                <h3 class="dashboard__card-value">{{ card.value }}</h3>
+                <p class="dashboard__card-title">{{ card.title }}</p>
               </div>
               @if (card.route) {
-                <a mat-icon-button [routerLink]="card.route" class="card-action">
+                <a mat-icon-button [routerLink]="card.route" class="dashboard__card-action">
                   <mat-icon>arrow_forward</mat-icon>
                 </a>
               }
@@ -57,19 +57,19 @@ interface DashboardCard {
         }
       </div>
 
-      <div class="dashboard-sections">
-        <mat-card class="section-card">
+      <div class="dashboard__sections">
+        <mat-card class="dashboard__section-card">
           <mat-card-header>
             <mat-card-title>Recent Activity</mat-card-title>
           </mat-card-header>
           <mat-card-content>
-            <div class="activity-list">
+            <div class="dashboard__activity-list">
               @for (activity of recentActivity(); track activity.id) {
-                <div class="activity-item">
+                <div class="dashboard__activity-item">
                   <mat-icon [style.color]="activity.color">{{ activity.icon }}</mat-icon>
-                  <div class="activity-content">
-                    <span class="activity-message">{{ activity.message }}</span>
-                    <span class="activity-time">{{ activity.time }}</span>
+                  <div class="dashboard__activity-content">
+                    <span class="dashboard__activity-message">{{ activity.message }}</span>
+                    <span class="dashboard__activity-time">{{ activity.time }}</span>
                   </div>
                 </div>
               }
@@ -77,12 +77,12 @@ interface DashboardCard {
           </mat-card-content>
         </mat-card>
 
-        <mat-card class="section-card">
+        <mat-card class="dashboard__section-card">
           <mat-card-header>
             <mat-card-title>Quick Actions</mat-card-title>
           </mat-card-header>
           <mat-card-content>
-            <div class="quick-actions">
+            <div class="dashboard__quick-actions">
               <button mat-stroked-button routerLink="/users">
                 <mat-icon>person_add</mat-icon>
                 Invite User
@@ -106,25 +106,25 @@ interface DashboardCard {
     }
   `,
   styles: [`
-    .dashboard-grid {
+    .dashboard__grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
       gap: 24px;
       margin-bottom: 24px;
     }
 
-    .dashboard-card {
+    .dashboard__card {
       border-left: 4px solid;
     }
 
-    .dashboard-card mat-card-content {
+    .dashboard__card mat-card-content {
       display: flex;
       align-items: center;
       gap: 16px;
       padding: 24px !important;
     }
 
-    .card-icon {
+    .dashboard__card-icon {
       width: 56px;
       height: 56px;
       border-radius: 12px;
@@ -133,78 +133,78 @@ interface DashboardCard {
       justify-content: center;
     }
 
-    .card-icon mat-icon {
+    .dashboard__card-icon mat-icon {
       font-size: 28px;
       width: 28px;
       height: 28px;
     }
 
-    .card-content {
+    .dashboard__card-content {
       flex: 1;
     }
 
-    .card-value {
+    .dashboard__card-value {
       font-size: 28px;
       font-weight: 600;
       margin: 0;
       color: rgba(0, 0, 0, 0.87);
     }
 
-    .card-title {
+    .dashboard__card-title {
       font-size: 14px;
       color: rgba(0, 0, 0, 0.6);
       margin: 4px 0 0 0;
     }
 
-    .dashboard-sections {
+    .dashboard__sections {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
       gap: 24px;
     }
 
-    .section-card {
+    .dashboard__section-card {
       padding: 8px;
     }
 
-    .activity-list {
+    .dashboard__activity-list {
       display: flex;
       flex-direction: column;
       gap: 16px;
     }
 
-    .activity-item {
+    .dashboard__activity-item {
       display: flex;
       align-items: flex-start;
       gap: 12px;
     }
 
-    .activity-content {
+    .dashboard__activity-content {
       display: flex;
       flex-direction: column;
     }
 
-    .activity-message {
+    .dashboard__activity-message {
       font-size: 14px;
       color: rgba(0, 0, 0, 0.87);
     }
 
-    .activity-time {
+    .dashboard__activity-time {
       font-size: 12px;
       color: rgba(0, 0, 0, 0.6);
     }
 
-    .quick-actions {
+    .dashboard__quick-actions {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
       gap: 12px;
     }
 
-    .quick-actions button {
+    .dashboard__quick-actions button {
       justify-content: flex-start;
       padding: 12px 16px;
     }
 
-    .quick-actions mat-icon {
+    .dashboard__quick-actions mat-icon {
       margin-right: 8px;
     }
   `]
