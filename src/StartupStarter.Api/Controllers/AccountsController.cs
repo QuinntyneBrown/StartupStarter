@@ -1,5 +1,7 @@
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using StartupStarter.Api.Authentication.Authorization;
 using StartupStarter.Api.Features.AccountManagement.Commands;
 using StartupStarter.Api.Features.AccountManagement.Dtos;
 using StartupStarter.Api.Features.AccountManagement.Queries;
@@ -8,6 +10,7 @@ namespace StartupStarter.Api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[Authorize]
 public class AccountsController : ControllerBase
 {
     private readonly IMediator _mediator;
@@ -18,6 +21,7 @@ public class AccountsController : ControllerBase
     }
 
     [HttpPost]
+    [Authorize(Roles = $"{Roles.SuperAdmin},{Roles.AccountAdmin}")]
     public async Task<ActionResult<AccountDto>> CreateAccount([FromBody] CreateAccountCommand command)
     {
         var result = await _mediator.Send(command);
@@ -25,6 +29,7 @@ public class AccountsController : ControllerBase
     }
 
     [HttpGet("{id}")]
+    [Authorize]
     public async Task<ActionResult<AccountDto>> GetAccount(string id)
     {
         var query = new GetAccountByIdQuery { AccountId = id };
