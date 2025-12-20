@@ -17,7 +17,7 @@ public class GetAccountByIdQueryHandlerTests
         var account = new Account(
             accountId,
             "Test Company",
-            AccountType.Business,
+            AccountType.Enterprise,
             "owner-123",
             "Premium",
             "admin");
@@ -34,7 +34,7 @@ public class GetAccountByIdQueryHandlerTests
         result.Should().NotBeNull();
         result!.AccountId.Should().Be(accountId);
         result.AccountName.Should().Be("Test Company");
-        result.AccountType.Should().Be(AccountType.Business.ToString());
+        result.AccountType.Should().Be(AccountType.Enterprise.ToString());
         result.OwnerUserId.Should().Be("owner-123");
         result.SubscriptionTier.Should().Be("Premium");
         result.Status.Should().Be(AccountStatus.Active.ToString());
@@ -79,7 +79,7 @@ public class GetAccountByIdQueryHandlerTests
         var account = new Account(
             accountId,
             "Suspended Company",
-            AccountType.Business,
+            AccountType.Enterprise,
             "owner-123",
             "Premium",
             "admin");
@@ -114,7 +114,7 @@ public class GetAccountByIdQueryHandlerTests
             "owner-123",
             "Basic",
             "admin");
-        account.Delete("admin", DeletionType.Soft);
+        account.Delete("admin", DeletionType.SoftDelete);
         account.ClearDomainEvents();
         context.Accounts.Add(account);
         await context.SaveChangesAsync();
@@ -176,7 +176,7 @@ public class GetAccountByIdQueryHandlerTests
         var accountId2 = Guid.NewGuid().ToString();
         var accountId3 = Guid.NewGuid().ToString();
 
-        var account1 = new Account(accountId1, "Company One", AccountType.Business, "owner-1", "Basic", "admin");
+        var account1 = new Account(accountId1, "Company One", AccountType.Enterprise, "owner-1", "Basic", "admin");
         var account2 = new Account(accountId2, "Company Two", AccountType.Individual, "owner-2", "Premium", "admin");
         var account3 = new Account(accountId3, "Company Three", AccountType.Enterprise, "owner-3", "Enterprise", "admin");
 
@@ -206,7 +206,7 @@ public class GetAccountByIdQueryHandlerTests
         var account = new Account(
             accountId,
             "Transfer Company",
-            AccountType.Business,
+            AccountType.Enterprise,
             "original-owner",
             "Premium",
             "admin");
@@ -235,7 +235,7 @@ public class GetAccountByIdQueryHandlerTests
         var account = new Account(
             accountId,
             "Upgrade Company",
-            AccountType.Business,
+            AccountType.Enterprise,
             "owner-123",
             "Basic",
             "admin");

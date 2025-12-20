@@ -498,12 +498,12 @@ public class ContentTests
         content.ClearDomainEvents();
 
         // Act
-        content.Delete("admin", DeletionType.Soft);
+        content.Delete("admin", DeletionType.SoftDelete);
 
         // Assert
         content.Status.Should().Be(ContentStatus.Deleted);
         content.DeletedAt.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(1));
-        content.DeletionType.Should().Be(DeletionType.Soft);
+        content.DeletionType.Should().Be(DeletionType.SoftDelete);
     }
 
     [Fact]
@@ -514,7 +514,7 @@ public class ContentTests
         content.ClearDomainEvents();
 
         // Act
-        content.Delete("admin", DeletionType.Hard);
+        content.Delete("admin", DeletionType.HardDelete);
 
         // Assert
         content.DomainEvents.Should().ContainSingle();
@@ -522,7 +522,7 @@ public class ContentTests
         domainEvent.Should().NotBeNull();
         domainEvent!.ContentId.Should().Be(content.ContentId);
         domainEvent.DeletedBy.Should().Be("admin");
-        domainEvent.DeletionType.Should().Be(DeletionType.Hard);
+        domainEvent.DeletionType.Should().Be(DeletionType.HardDelete);
     }
 
     [Theory]
@@ -535,7 +535,7 @@ public class ContentTests
         var content = CreateContent();
 
         // Act & Assert
-        var act = () => content.Delete(deletedBy!, DeletionType.Soft);
+        var act = () => content.Delete(deletedBy!, DeletionType.SoftDelete);
         act.Should().Throw<ArgumentException>()
             .WithParameterName("deletedBy");
     }

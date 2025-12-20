@@ -507,7 +507,7 @@ public class DashboardTests
         var dashboard = CreateDashboard();
 
         // Act & Assert
-        var act = () => dashboard.ShareWith(null!, PermissionLevel.ReadOnly);
+        var act = () => dashboard.ShareWith(null!, PermissionLevel.View);
         act.Should().Throw<ArgumentException>()
             .WithParameterName("userIds");
     }
@@ -519,7 +519,7 @@ public class DashboardTests
         var dashboard = CreateDashboard();
 
         // Act & Assert
-        var act = () => dashboard.ShareWith(new List<string>(), PermissionLevel.ReadOnly);
+        var act = () => dashboard.ShareWith(new List<string>(), PermissionLevel.View);
         act.Should().Throw<ArgumentException>()
             .WithParameterName("userIds");
     }
