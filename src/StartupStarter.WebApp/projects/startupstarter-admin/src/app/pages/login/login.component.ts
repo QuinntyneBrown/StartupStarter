@@ -39,7 +39,7 @@ import { AuthService } from '../../services';
             <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
               <mat-form-field appearance="outline" class="full-width">
                 <mat-label>Email</mat-label>
-                <input matInput type="email" formControlName="email" placeholder="you@example.com">
+                <input matInput formControlName="email" placeholder="you@example.com">
                 <mat-icon matSuffix>email</mat-icon>
                 @if (loginForm.get('email')?.hasError('required')) {
                   <mat-error>Email is required</mat-error>
@@ -169,7 +169,7 @@ export class LoginComponent {
   private sessionId = '';
 
   loginForm = this.fb.group({
-    email: ['', [Validators.required, Validators.email]],
+    email: ['', [Validators.required]],
     password: ['', Validators.required]
   });
 
