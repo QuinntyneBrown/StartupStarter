@@ -4,6 +4,16 @@ using StartupStarter.Core.Model.UserAggregate.Entities;
 using StartupStarter.Core.Model.ProfileAggregate.Entities;
 using StartupStarter.Core.Model.RoleAggregate.Entities;
 using StartupStarter.Core.Model.ContentAggregate.Entities;
+using StartupStarter.Core.Model.DashboardAggregate.Entities;
+using StartupStarter.Core.Model.MediaAggregate.Entities;
+using StartupStarter.Core.Model.ApiKeyAggregate.Entities;
+using StartupStarter.Core.Model.WebhookAggregate.Entities;
+using StartupStarter.Core.Model.AuditAggregate.Entities;
+using StartupStarter.Core.Model.AuthenticationAggregate.Entities;
+using StartupStarter.Core.Model.WorkflowAggregate.Entities;
+using StartupStarter.Core.Model.MaintenanceAggregate.Entities;
+using StartupStarter.Core.Model.BackupAggregate.Entities;
+using StartupStarter.Core.Model.SystemErrorAggregate.Entities;
 
 namespace StartupStarter.Core;
 
@@ -30,44 +40,44 @@ public interface IStartupStarterContext
     DbSet<Content> Contents { get; set; }
     DbSet<ContentVersion> ContentVersions { get; set; }
 
-    // Dashboard Management (to be implemented)
-    // DbSet<Dashboard> Dashboards { get; set; }
-    // DbSet<DashboardCard> DashboardCards { get; set; }
-    // DbSet<DashboardShare> DashboardShares { get; set; }
+    // Dashboard Management
+    DbSet<Dashboard> Dashboards { get; set; }
+    DbSet<DashboardCard> DashboardCards { get; set; }
+    DbSet<DashboardShare> DashboardShares { get; set; }
 
-    // Media Management (to be implemented)
-    // DbSet<Media> Medias { get; set; }
+    // Media Management
+    DbSet<Media> Medias { get; set; }
 
-    // API Management (to be implemented)
-    // DbSet<ApiKey> ApiKeys { get; set; }
-    // DbSet<ApiRequest> ApiRequests { get; set; }
-    // DbSet<Webhook> Webhooks { get; set; }
-    // DbSet<WebhookDelivery> WebhookDeliveries { get; set; }
+    // API Management
+    DbSet<ApiKey> ApiKeys { get; set; }
+    DbSet<ApiRequest> ApiRequests { get; set; }
+    DbSet<Webhook> Webhooks { get; set; }
+    DbSet<WebhookDelivery> WebhookDeliveries { get; set; }
 
-    // Audit (to be implemented)
-    // DbSet<AuditLog> AuditLogs { get; set; }
-    // DbSet<AuditExport> AuditExports { get; set; }
-    // DbSet<RetentionPolicy> RetentionPolicies { get; set; }
+    // Audit
+    DbSet<AuditLog> AuditLogs { get; set; }
+    DbSet<AuditExport> AuditExports { get; set; }
+    DbSet<RetentionPolicy> RetentionPolicies { get; set; }
 
-    // Authentication (to be implemented)
-    // DbSet<UserSession> UserSessions { get; set; }
-    // DbSet<LoginAttempt> LoginAttempts { get; set; }
-    // DbSet<MultiFactorAuthentication> MultiFactorAuthentications { get; set; }
-    // DbSet<PasswordResetRequest> PasswordResetRequests { get; set; }
+    // Authentication
+    DbSet<UserSession> UserSessions { get; set; }
+    DbSet<LoginAttempt> LoginAttempts { get; set; }
+    DbSet<MultiFactorAuthentication> MultiFactorAuthentications { get; set; }
+    DbSet<PasswordResetRequest> PasswordResetRequests { get; set; }
 
-    // Workflow (to be implemented)
-    // DbSet<Workflow> Workflows { get; set; }
-    // DbSet<WorkflowStage> WorkflowStages { get; set; }
-    // DbSet<WorkflowApproval> WorkflowApprovals { get; set; }
+    // Workflow
+    DbSet<Workflow> Workflows { get; set; }
+    DbSet<WorkflowStage> WorkflowStages { get; set; }
+    DbSet<WorkflowApproval> WorkflowApprovals { get; set; }
 
-    // System - Maintenance (to be implemented)
-    // DbSet<SystemMaintenance> SystemMaintenances { get; set; }
+    // System - Maintenance
+    DbSet<SystemMaintenance> SystemMaintenances { get; set; }
 
-    // System - Backup (to be implemented)
-    // DbSet<SystemBackup> SystemBackups { get; set; }
+    // System - Backup
+    DbSet<SystemBackup> SystemBackups { get; set; }
 
-    // System - Error (to be implemented)
-    // DbSet<SystemError> SystemErrors { get; set; }
+    // System - Error
+    DbSet<SystemError> SystemErrors { get; set; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }
