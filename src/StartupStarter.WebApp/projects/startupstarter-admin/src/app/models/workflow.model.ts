@@ -1,30 +1,40 @@
+export enum WorkflowStatus {
+  Started = 'Started',
+  InProgress = 'InProgress',
+  Completed = 'Completed',
+  Rejected = 'Rejected',
+  Cancelled = 'Cancelled'
+}
+
+export enum WorkflowType {
+  ContentPublishing = 'ContentPublishing',
+  AccountSetup = 'AccountSetup',
+  UserApproval = 'UserApproval',
+  Custom = 'Custom'
+}
+
+export enum ApprovalLevel {
+  L1 = 'L1',
+  L2 = 'L2',
+  L3 = 'L3'
+}
+
 export interface Workflow {
   workflowId: string;
-  name: string;
-  contentId: string;
+  contentId?: string;
   accountId: string;
-  workflowType: string;
-  entityType: string;
+  workflowType: WorkflowType;
   initiatedBy: string;
-  currentAssigneeId: string;
+  initiatedByName?: string;
+  currentAssigneeId?: string;
+  currentAssigneeName?: string;
   currentStage: string;
-  status: WorkflowStatus;
-  finalStatus?: string;
+  finalStatus?: WorkflowStatus;
   startedAt: Date;
   completedAt?: Date;
   cancelledAt?: Date;
   duration?: number;
   isCompleted: boolean;
-  steps: WorkflowStage[];
-  stages: WorkflowStage[];
-  approvals: WorkflowApproval[];
-}
-
-export enum WorkflowStatus {
-  Active = 'Active',
-  Inactive = 'Inactive',
-  Draft = 'Draft',
-  Deprecated = 'Deprecated'
 }
 
 export interface WorkflowStage {
@@ -34,6 +44,7 @@ export interface WorkflowStage {
   stageOrder: number;
   completedAt?: Date;
   completedBy?: string;
+  completedByName?: string;
   isCompleted: boolean;
 }
 
@@ -41,29 +52,29 @@ export interface WorkflowApproval {
   workflowApprovalId: string;
   workflowId: string;
   approvedBy: string;
-  approvalLevel: string;
-  comments: string;
+  approvedByName?: string;
+  approvalLevel: ApprovalLevel;
+  comments?: string;
   isApproved: boolean;
   rejectionReason?: string;
   approvalDate: Date;
 }
 
 export interface StartWorkflowRequest {
-  contentId: string;
-  accountId: string;
-  workflowType: string;
+  contentId?: string;
+  workflowType: WorkflowType;
 }
 
 export interface ApproveWorkflowRequest {
-  approvalLevel: string;
   comments?: string;
 }
 
 export interface RejectWorkflowRequest {
-  rejectionReason: string;
+  reason: string;
   comments?: string;
 }
 
 export interface ReassignWorkflowRequest {
   newAssigneeId: string;
+  reason: string;
 }

@@ -1,26 +1,40 @@
+export enum MediaType {
+  Image = 'Image',
+  Video = 'Video',
+  Document = 'Document',
+  Audio = 'Audio',
+  Other = 'Other'
+}
+
+export enum ProcessingStatus {
+  Pending = 'Pending',
+  Processing = 'Processing',
+  Completed = 'Completed',
+  Failed = 'Failed'
+}
+
 export interface Media {
   mediaId: string;
   fileName: string;
-  fileType: string;
+  fileType: MediaType;
   mimeType: string;
   fileSize: number;
-  uploadedBy: string;
   accountId: string;
-  profileId: string;
+  profileId?: string;
+  uploadedBy: string;
+  uploadedByName?: string;
   storageLocation: string;
-  url: string;
-  uploadedAt: Date;
-  updatedAt?: Date;
-  processingStatus: string;
+  thumbnailUrl?: string;
+  processingStatus: ProcessingStatus;
   tags: string[];
   categories: string[];
-  outputFormats: string[];
+  uploadedAt: Date;
+  deletedAt?: Date;
 }
 
 export interface UploadMediaRequest {
   file: File;
-  accountId: string;
-  profileId: string;
+  profileId?: string;
   tags?: string[];
   categories?: string[];
 }
@@ -29,4 +43,13 @@ export interface UpdateMediaRequest {
   fileName?: string;
   tags?: string[];
   categories?: string[];
+}
+
+export interface MediaSearchParams {
+  query?: string;
+  fileType?: MediaType;
+  tags?: string[];
+  categories?: string[];
+  page?: number;
+  pageSize?: number;
 }

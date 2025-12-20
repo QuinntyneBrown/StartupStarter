@@ -1,91 +1,66 @@
 export interface ApiKey {
   apiKeyId: string;
-  name: string;
   keyName: string;
-  keyPrefix?: string;
+  keyPrefix: string;
   accountId: string;
-  keyHash?: string;
-  createdBy: string;
+  permissions: string[];
   createdAt: Date;
   expiresAt?: Date;
   lastUsedAt?: Date;
   revokedAt?: Date;
-  revokedBy?: string;
-  revocationReason?: string;
   isActive: boolean;
-  status: ApiKeyStatus;
+}
+
+export interface CreateApiKeyRequest {
+  keyName: string;
   permissions: string[];
+  expiresAt?: Date;
 }
 
-export enum ApiKeyStatus {
-  Active = 'Active',
-  Expired = 'Expired',
-  Revoked = 'Revoked'
-}
-
-export interface ApiRequest {
-  requestId: string;
-  endpoint: string;
-  method: HttpMethod;
+export interface CreateApiKeyResponse {
   apiKeyId: string;
-  accountId: string;
-  ipAddress: string;
-  timestamp: Date;
-  responseStatusCode: number;
-  responseTimeMs: number;
-  wasRateLimited: boolean;
+  keyName: string;
+  apiKey: string;
+  expiresAt?: Date;
 }
 
 export interface Webhook {
   webhookId: string;
-  name: string;
-  url: string;
   accountId: string;
-  registeredBy: string;
-  registeredAt: Date;
-  deletedAt?: Date;
-  deletedBy?: string;
-  isActive: boolean;
-  status: WebhookStatus;
+  url: string;
   events: string[];
-  deliveries: WebhookDelivery[];
-}
-
-export enum WebhookStatus {
-  Active = 'Active',
-  Inactive = 'Inactive',
-  Failed = 'Failed'
+  isActive: boolean;
+  failureCount: number;
+  createdAt: Date;
+  updatedAt?: Date;
 }
 
 export interface WebhookDelivery {
   webhookDeliveryId: string;
   webhookId: string;
   eventType: string;
-  payloadJson: string;
-  responseStatus: number;
+  payload: Record<string, unknown>;
+  responseStatus?: number;
   success: boolean;
-  failureReason?: string;
   retryCount: number;
   timestamp: Date;
 }
 
-export enum HttpMethod {
-  GET = 'GET',
-  POST = 'POST',
-  PUT = 'PUT',
-  PATCH = 'PATCH',
-  DELETE = 'DELETE'
-}
-
-export interface CreateApiKeyRequest {
-  keyName: string;
-  accountId: string;
-  permissions: string[];
-  expiresAt?: Date;
-}
-
-export interface RegisterWebhookRequest {
+export interface CreateWebhookRequest {
   url: string;
-  accountId: string;
   events: string[];
 }
+
+export interface UpdateWebhookRequest {
+  url?: string;
+  events?: string[];
+  isActive?: boolean;
+}
+
+export const WEBHOOK_EVENTS = [
+  'account.created', 'account.updated', 'account.deleted', 'account.suspended',
+  'user.created', 'user.updated', 'user.deleted', 'user.activated', 'user.deactivated',
+  'content.created', 'content.updated', 'content.published', 'content.unpublished',
+  'workflow.started', 'workflow.approved', 'workflow.rejected', 'workflow.completed',
+  'media.uploaded', 'media.deleted'
+];

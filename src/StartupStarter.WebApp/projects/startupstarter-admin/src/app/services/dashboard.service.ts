@@ -4,12 +4,12 @@ import { ApiService } from './api.service';
 import {
   Dashboard,
   DashboardCard,
+  DashboardShare,
   CreateDashboardRequest,
   UpdateDashboardRequest,
   AddCardRequest,
-  CardPosition,
-  LayoutType,
-  DashboardPermissionLevel
+  UpdateCardPositionRequest,
+  ShareDashboardRequest
 } from '../models';
 
 @Injectable({
@@ -23,81 +23,63 @@ export class DashboardService {
     return this.api.get<Dashboard[]>(this.endpoint);
   }
 
-  getById(dashboardId: string): Observable<Dashboard> {
-    return this.api.get<Dashboard>(`${this.endpoint}/${dashboardId}`);
-  }
-
-  getByProfile(profileId: string): Observable<Dashboard[]> {
-    return this.api.get<Dashboard[]>(`${this.endpoint}/profile/${profileId}`);
-  }
-
-  getByAccount(accountId: string): Observable<Dashboard[]> {
-    return this.api.get<Dashboard[]>(`${this.endpoint}/account/${accountId}`);
+  getById(id: string): Observable<Dashboard> {
+    return this.api.get<Dashboard>(`${this.endpoint}/${id}`);
   }
 
   create(request: CreateDashboardRequest): Observable<Dashboard> {
     return this.api.post<Dashboard>(this.endpoint, request);
   }
 
-  update(dashboardId: string, request: UpdateDashboardRequest): Observable<Dashboard> {
-    return this.api.put<Dashboard>(`${this.endpoint}/${dashboardId}`, request);
+  update(id: string, request: UpdateDashboardRequest): Observable<Dashboard> {
+    return this.api.put<Dashboard>(`${this.endpoint}/${id}`, request);
   }
 
-  delete(dashboardId: string): Observable<boolean> {
-    return this.api.delete<boolean>(`${this.endpoint}/${dashboardId}`);
+  delete(id: string): Observable<void> {
+    return this.api.delete<void>(`${this.endpoint}/${id}`);
   }
 
-  clone(dashboardId: string, newName: string): Observable<Dashboard> {
-    return this.api.post<Dashboard>(`${this.endpoint}/${dashboardId}/clone`, { newName });
+  clone(id: string, newName: string): Observable<Dashboard> {
+    return this.api.post<Dashboard>(`${this.endpoint}/${id}/clone`, { newName });
   }
 
-  setAsDefault(dashboardId: string): Observable<boolean> {
-    return this.api.post<boolean>(`${this.endpoint}/${dashboardId}/set-default`, {});
+  setAsDefault(id: string): Observable<Dashboard> {
+    return this.api.post<Dashboard>(`${this.endpoint}/${id}/default`, {});
   }
 
-  changeLayout(dashboardId: string, layoutType: LayoutType): Observable<boolean> {
-    return this.api.put<boolean>(`${this.endpoint}/${dashboardId}/layout`, { layoutType });
+  share(id: string, request: ShareDashboardRequest): Observable<DashboardShare> {
+    return this.api.post<DashboardShare>(`${this.endpoint}/${id}/share`, request);
   }
 
-  share(dashboardId: string, userIds: string[], permissionLevel: DashboardPermissionLevel): Observable<boolean> {
-    return this.api.post<boolean>(`${this.endpoint}/${dashboardId}/share`, { userIds, permissionLevel });
+  revokeShare(id: string, userId: string): Observable<void> {
+    return this.api.delete<void>(`${this.endpoint}/${id}/share/${userId}`);
   }
 
-  revokeShare(dashboardId: string, userIds: string[]): Observable<boolean> {
-    return this.api.post<boolean>(`${this.endpoint}/${dashboardId}/revoke-share`, { userIds });
+  getCards(id: string): Observable<DashboardCard[]> {
+    return this.api.get<DashboardCard[]>(`${this.endpoint}/${id}/cards`);
   }
 
-  moveToProfile(dashboardId: string, newProfileId: string): Observable<boolean> {
-    return this.api.post<boolean>(`${this.endpoint}/${dashboardId}/move`, { newProfileId });
+  addCard(id: string, request: AddCardRequest): Observable<DashboardCard> {
+    return this.api.post<DashboardCard>(`${this.endpoint}/${id}/cards`, request);
   }
 
-  // Card operations
-  getCards(dashboardId: string): Observable<DashboardCard[]> {
-    return this.api.get<DashboardCard[]>(`${this.endpoint}/${dashboardId}/cards`);
+  updateCard(dashboardId: string, cardId: string, request: Partial<AddCardRequest>): Observable<DashboardCard> {
+    return this.api.put<DashboardCard>(`${this.endpoint}/${dashboardId}/cards/${cardId}`, request);
   }
 
-  addCard(dashboardId: string, request: AddCardRequest): Observable<DashboardCard> {
-    return this.api.post<DashboardCard>(`${this.endpoint}/${dashboardId}/cards`, request);
+  updateCardPosition(dashboardId: string, cardId: string, request: UpdateCardPositionRequest): Observable<DashboardCard> {
+    return this.api.put<DashboardCard>(`${this.endpoint}/${dashboardId}/cards/${cardId}/position`, request);
   }
 
-  updateCard(dashboardId: string, cardId: string, config: Record<string, unknown>): Observable<DashboardCard> {
-    return this.api.put<DashboardCard>(`${this.endpoint}/${dashboardId}/cards/${cardId}`, config);
+  removeCard(dashboardId: string, cardId: string): Observable<void> {
+    return this.api.delete<void>(`${this.endpoint}/${dashboardId}/cards/${cardId}`);
   }
 
-  removeCard(dashboardId: string, cardId: string): Observable<boolean> {
-    return this.api.delete<boolean>(`${this.endpoint}/${dashboardId}/cards/${cardId}`);
+  exportDashboard(id: string): Observable<Blob> {
+    return this.api.download(`${this.endpoint}/${id}/export`);
   }
 
-  repositionCard(dashboardId: string, cardId: string, position: CardPosition): Observable<boolean> {
-    return this.api.put<boolean>(`${this.endpoint}/${dashboardId}/cards/${cardId}/position`, position);
-  }
-
-  // Export/Import
-  export(dashboardId: string, format: 'JSON' | 'PDF' | 'Image'): Observable<Blob> {
-    return this.api.get<Blob>(`${this.endpoint}/${dashboardId}/export?format=${format}`);
-  }
-
-  import(profileId: string, dashboardData: unknown): Observable<Dashboard> {
-    return this.api.post<Dashboard>(`${this.endpoint}/import`, { profileId, dashboardData });
+  importDashboard(file: File): Observable<Dashboard> {
+    return this.api.upload<Dashboard>(`${this.endpoint}/import`, file);
   }
 }

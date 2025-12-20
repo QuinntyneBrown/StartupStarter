@@ -1,82 +1,73 @@
-export interface AuditLog {
-  auditId: string;
-  entityType: string;
-  entityId: string;
-  accountId: string;
-  action: AuditAction;
-  performedBy: string;
-  userId: string;
-  ipAddress: string;
-  beforeState?: unknown;
-  afterState?: unknown;
-  timestamp: Date;
-}
-
 export enum AuditAction {
   Create = 'Create',
   Update = 'Update',
   Delete = 'Delete',
-  View = 'View',
+  Suspend = 'Suspend',
+  Activate = 'Activate',
+  Deactivate = 'Deactivate',
+  Lock = 'Lock',
+  Unlock = 'Unlock',
   Login = 'Login',
   Logout = 'Logout',
-  LoginFailed = 'LoginFailed',
-  PasswordChanged = 'PasswordChanged',
-  PermissionGranted = 'PermissionGranted',
-  PermissionRevoked = 'PermissionRevoked',
-  Export = 'Export',
-  Import = 'Import'
+  PasswordReset = 'PasswordReset',
+  PermissionChange = 'PermissionChange',
+  Export = 'Export'
+}
+
+export interface AuditLog {
+  auditLogId: string;
+  entityType: string;
+  entityId: string;
+  action: AuditAction;
+  accountId: string;
+  userId: string;
+  userName?: string;
+  ipAddress?: string;
+  userAgent?: string;
+  beforeState?: Record<string, unknown>;
+  afterState?: Record<string, unknown>;
+  description?: string;
+  timestamp: Date;
 }
 
 export interface AuditExport {
-  exportId: string;
+  auditExportId: string;
   accountId: string;
   requestedBy: string;
-  startDate: Date;
-  endDate: Date;
-  filtersJson: string;
-  fileFormat: FileFormat;
+  format: ExportFormat;
+  filters: AuditSearchParams;
   status: ExportStatus;
-  recordCount: number;
-  fileLocation?: string;
+  downloadUrl?: string;
   requestedAt: Date;
   completedAt?: Date;
+  expiresAt?: Date;
 }
 
-export interface RetentionPolicy {
-  retentionPolicyId: string;
-  policyName: string;
-  retentionDays: number;
-  isActive: boolean;
-  createdAt: Date;
-  updatedAt?: Date;
-}
-
-export enum FileFormat {
+export enum ExportFormat {
   CSV = 'CSV',
   JSON = 'JSON',
   PDF = 'PDF'
 }
 
 export enum ExportStatus {
-  Requested = 'Requested',
-  InProgress = 'InProgress',
+  Pending = 'Pending',
+  Processing = 'Processing',
   Completed = 'Completed',
   Failed = 'Failed'
 }
 
-export interface RequestAuditExportRequest {
-  accountId: string;
-  startDate: Date;
-  endDate: Date;
-  filters?: Record<string, unknown>;
-  fileFormat: FileFormat;
-}
-
-export interface AuditLogFilter {
-  accountId?: string;
+export interface AuditSearchParams {
   entityType?: string;
   entityId?: string;
-  action?: string;
+  action?: AuditAction;
+  userId?: string;
   startDate?: Date;
   endDate?: Date;
+  page?: number;
+  pageSize?: number;
+}
+
+export interface RequestExportRequest {
+  format: ExportFormat;
+  filters: AuditSearchParams;
 }

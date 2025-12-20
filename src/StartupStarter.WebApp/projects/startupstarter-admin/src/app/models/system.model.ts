@@ -1,40 +1,13 @@
-export interface SystemMaintenance {
-  maintenanceId: string;
-  scheduledStartTime: Date;
-  estimatedDuration: number;
-  maintenanceType: MaintenanceType;
-  actualStartTime?: Date;
-  completedTime?: Date;
-  actualDuration?: number;
-  affectedServices: string[];
-}
-
-export interface SystemBackup {
-  backupId: string;
-  backupType: BackupType;
-  startedAt: Date;
-  completedAt?: Date;
-  backupSize?: number;
-  duration?: number;
-  backupLocation?: string;
-  success: boolean;
-  failureReason?: string;
-}
-
-export interface SystemError {
-  errorId: string;
-  errorMessage: string;
-  stackTrace: string;
-  severity: ErrorSeverity;
-  component: string;
-  occurredAt: Date;
-  resolvedAt?: Date;
-  resolvedBy?: string;
-}
-
 export enum MaintenanceType {
-  Planned = 'Planned',
+  Scheduled = 'Scheduled',
   Emergency = 'Emergency'
+}
+
+export enum MaintenanceStatus {
+  Scheduled = 'Scheduled',
+  InProgress = 'InProgress',
+  Completed = 'Completed',
+  Cancelled = 'Cancelled'
 }
 
 export enum BackupType {
@@ -43,29 +16,90 @@ export enum BackupType {
   Differential = 'Differential'
 }
 
+export enum BackupStatus {
+  Pending = 'Pending',
+  InProgress = 'InProgress',
+  Completed = 'Completed',
+  Failed = 'Failed'
+}
+
 export enum ErrorSeverity {
-  Low = 'Low',
-  Medium = 'Medium',
+  Critical = 'Critical',
   High = 'High',
-  Critical = 'Critical'
+  Medium = 'Medium',
+  Low = 'Low'
+}
+
+export interface SystemMaintenance {
+  maintenanceId: string;
+  maintenanceType: MaintenanceType;
+  description: string;
+  scheduledStartTime: Date;
+  estimatedDuration: number;
+  actualStartTime?: Date;
+  actualDuration?: number;
+  completedTime?: Date;
+  affectedServices: string[];
+  status: MaintenanceStatus;
+}
+
+export interface SystemBackup {
+  backupId: string;
+  backupType: BackupType;
+  startedAt: Date;
+  completedAt?: Date;
+  backupSize?: number;
+  backupLocation?: string;
+  status: BackupStatus;
+  failureReason?: string;
+}
+
+export interface SystemError {
+  errorId: string;
+  errorType: string;
+  errorMessage: string;
+  stackTrace?: string;
+  severity: ErrorSeverity;
+  affectedAccounts?: string[];
+  occurredAt: Date;
+  resolvedAt?: Date;
+  resolvedBy?: string;
+}
+
+export interface SystemHealth {
+  status: 'Healthy' | 'Degraded' | 'Unhealthy';
+  uptime: number;
+  lastCheck: Date;
+  services: ServiceHealth[];
+}
+
+export interface ServiceHealth {
+  serviceName: string;
+  status: 'Healthy' | 'Degraded' | 'Unhealthy';
+  responseTime: number;
+  lastCheck: Date;
+}
+
+export interface SystemMetrics {
+  requestsPerSecond: number;
+  responseTimeP50: number;
+  responseTimeP95: number;
+  responseTimeP99: number;
+  errorRate: number;
+  activeSessions: number;
+  cpuUsage: number;
+  memoryUsage: number;
+  diskUsage: number;
 }
 
 export interface ScheduleMaintenanceRequest {
-  scheduledStartTime: Date;
-  estimatedDuration: number;
   maintenanceType: MaintenanceType;
+  description: string;
+  scheduledStartTime: Date;
+  estimatedDurationMinutes: number;
   affectedServices: string[];
 }
 
-export interface StartBackupRequest {
-  backupType: BackupType;
-}
-
-export interface SystemConfig {
-  applicationName: string;
-  applicationUrl: string;
-  supportEmail: string;
-  defaultTimezone: string;
-  defaultLanguage: string;
-  maintenanceMode: boolean;
+export interface ResolveErrorRequest {
+  resolution: string;
 }

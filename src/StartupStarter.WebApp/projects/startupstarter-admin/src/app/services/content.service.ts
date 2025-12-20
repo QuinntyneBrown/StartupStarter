@@ -4,10 +4,10 @@ import { ApiService } from './api.service';
 import {
   Content,
   ContentVersion,
-  ContentStatus,
   CreateContentRequest,
   UpdateContentRequest,
-  ScheduleContentRequest
+  PublishContentRequest,
+  UnpublishContentRequest
 } from '../models';
 
 @Injectable({
@@ -15,74 +15,53 @@ import {
 })
 export class ContentService {
   private readonly api = inject(ApiService);
-  private readonly endpoint = 'contents';
+  private readonly endpoint = 'content';
 
   getAll(): Observable<Content[]> {
     return this.api.get<Content[]>(this.endpoint);
   }
 
-  getById(contentId: string): Observable<Content> {
-    return this.api.get<Content>(`${this.endpoint}/${contentId}`);
-  }
-
-  getByAccount(accountId: string): Observable<Content[]> {
-    return this.api.get<Content[]>(`${this.endpoint}/account/${accountId}`);
-  }
-
-  getByProfile(profileId: string): Observable<Content[]> {
-    return this.api.get<Content[]>(`${this.endpoint}/profile/${profileId}`);
-  }
-
-  getByStatus(status: ContentStatus): Observable<Content[]> {
-    return this.api.get<Content[]>(`${this.endpoint}/status/${status}`);
+  getById(id: string): Observable<Content> {
+    return this.api.get<Content>(`${this.endpoint}/${id}`);
   }
 
   create(request: CreateContentRequest): Observable<Content> {
     return this.api.post<Content>(this.endpoint, request);
   }
 
-  update(contentId: string, request: UpdateContentRequest): Observable<Content> {
-    return this.api.put<Content>(`${this.endpoint}/${contentId}`, request);
+  update(id: string, request: UpdateContentRequest): Observable<Content> {
+    return this.api.put<Content>(`${this.endpoint}/${id}`, request);
   }
 
-  delete(contentId: string, deletionType: 'SoftDelete' | 'HardDelete' = 'SoftDelete'): Observable<boolean> {
-    return this.api.delete<boolean>(`${this.endpoint}/${contentId}?deletionType=${deletionType}`);
+  delete(id: string): Observable<void> {
+    return this.api.delete<void>(`${this.endpoint}/${id}`);
   }
 
-  publish(contentId: string, publishDate?: Date): Observable<boolean> {
-    return this.api.post<boolean>(`${this.endpoint}/${contentId}/publish`, { publishDate });
+  publish(id: string, request?: PublishContentRequest): Observable<Content> {
+    return this.api.post<Content>(`${this.endpoint}/${id}/publish`, request || {});
   }
 
-  unpublish(contentId: string, reason: string): Observable<boolean> {
-    return this.api.post<boolean>(`${this.endpoint}/${contentId}/unpublish`, { reason });
+  unpublish(id: string, request: UnpublishContentRequest): Observable<Content> {
+    return this.api.post<Content>(`${this.endpoint}/${id}/unpublish`, request);
   }
 
-  changeStatus(contentId: string, newStatus: ContentStatus): Observable<boolean> {
-    return this.api.post<boolean>(`${this.endpoint}/${contentId}/status`, { newStatus });
+  getVersions(id: string): Observable<ContentVersion[]> {
+    return this.api.get<ContentVersion[]>(`${this.endpoint}/${id}/versions`);
   }
 
-  schedule(contentId: string, request: ScheduleContentRequest): Observable<boolean> {
-    return this.api.post<boolean>(`${this.endpoint}/${contentId}/schedule`, request);
+  getVersion(id: string, versionId: string): Observable<ContentVersion> {
+    return this.api.get<ContentVersion>(`${this.endpoint}/${id}/versions/${versionId}`);
   }
 
-  cancelSchedule(contentId: string): Observable<boolean> {
-    return this.api.post<boolean>(`${this.endpoint}/${contentId}/cancel-schedule`, {});
+  restoreVersion(id: string, versionNumber: number): Observable<Content> {
+    return this.api.post<Content>(`${this.endpoint}/${id}/restore/${versionNumber}`, {});
   }
 
-  // Version operations
-  getVersions(contentId: string): Observable<ContentVersion[]> {
-    return this.api.get<ContentVersion[]>(`${this.endpoint}/${contentId}/versions`);
+  schedule(id: string, scheduledDate: Date): Observable<Content> {
+    return this.api.post<Content>(`${this.endpoint}/${id}/schedule`, { scheduledDate });
   }
 
-  getVersion(contentId: string, versionNumber: number): Observable<ContentVersion> {
-    return this.api.get<ContentVersion>(`${this.endpoint}/${contentId}/versions/${versionNumber}`);
-  }
-
-  createVersion(contentId: string, changeDescription: string): Observable<ContentVersion> {
-    return this.api.post<ContentVersion>(`${this.endpoint}/${contentId}/versions`, { changeDescription });
-  }
-
-  restoreVersion(contentId: string, versionNumber: number): Observable<boolean> {
-    return this.api.post<boolean>(`${this.endpoint}/${contentId}/versions/${versionNumber}/restore`, {});
+  cancelSchedule(id: string): Observable<Content> {
+    return this.api.post<Content>(`${this.endpoint}/${id}/cancel-schedule`, {});
   }
 }

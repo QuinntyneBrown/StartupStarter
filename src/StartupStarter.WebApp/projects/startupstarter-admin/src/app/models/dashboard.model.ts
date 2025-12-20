@@ -1,3 +1,20 @@
+export enum LayoutType {
+  Grid = 'Grid',
+  Masonry = 'Masonry',
+  Freeform = 'Freeform'
+}
+
+export enum CardType {
+  Chart = 'Chart',
+  Metric = 'Metric',
+  Table = 'Table',
+  Text = 'Text',
+  Image = 'Image',
+  Calendar = 'Calendar',
+  Timeline = 'Timeline',
+  Custom = 'Custom'
+}
+
 export interface Dashboard {
   dashboardId: string;
   dashboardName: string;
@@ -5,29 +22,24 @@ export interface Dashboard {
   accountId: string;
   createdBy: string;
   isDefault: boolean;
-  template?: string;
   layoutType: LayoutType;
   createdAt: Date;
   updatedAt?: Date;
-  cards: DashboardCard[];
-  shares: DashboardShare[];
+  cards?: DashboardCard[];
 }
 
 export interface DashboardCard {
   cardId: string;
   dashboardId: string;
-  cardType: string;
-  configurationJson: string;
-  position: CardPosition;
-  createdAt: Date;
-  updatedAt?: Date;
-}
-
-export interface CardPosition {
+  cardType: CardType;
+  title: string;
+  configuration: Record<string, unknown>;
   row: number;
   column: number;
   width: number;
   height: number;
+  createdAt: Date;
+  updatedAt?: Date;
 }
 
 export interface DashboardShare {
@@ -35,34 +47,13 @@ export interface DashboardShare {
   dashboardId: string;
   ownerUserId: string;
   sharedWithUserId: string;
-  permissionLevel: DashboardPermissionLevel;
+  permissionLevel: string;
   sharedAt: Date;
-}
-
-export enum LayoutType {
-  Grid = 'Grid',
-  Masonry = 'Masonry',
-  Freeform = 'Freeform'
-}
-
-export enum DashboardPermissionLevel {
-  View = 'View',
-  Edit = 'Edit'
-}
-
-export enum ExportFormat {
-  JSON = 'JSON',
-  PDF = 'PDF',
-  Image = 'Image'
 }
 
 export interface CreateDashboardRequest {
   dashboardName: string;
-  profileId: string;
-  accountId: string;
-  isDefault?: boolean;
-  template?: string;
-  layoutType?: LayoutType;
+  layoutType: LayoutType;
 }
 
 export interface UpdateDashboardRequest {
@@ -71,7 +62,23 @@ export interface UpdateDashboardRequest {
 }
 
 export interface AddCardRequest {
-  cardType: string;
-  configurationJson: string;
-  position: CardPosition;
+  cardType: CardType;
+  title: string;
+  configuration: Record<string, unknown>;
+  row: number;
+  column: number;
+  width: number;
+  height: number;
+}
+
+export interface UpdateCardPositionRequest {
+  row: number;
+  column: number;
+  width: number;
+  height: number;
+}
+
+export interface ShareDashboardRequest {
+  userId: string;
+  permissionLevel: string;
 }

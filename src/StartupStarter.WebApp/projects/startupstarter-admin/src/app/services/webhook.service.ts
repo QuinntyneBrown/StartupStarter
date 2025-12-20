@@ -1,7 +1,12 @@
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { ApiService } from './api.service';
-import { Webhook, WebhookDelivery, RegisterWebhookRequest } from '../models';
+import {
+  Webhook,
+  WebhookDelivery,
+  CreateWebhookRequest,
+  UpdateWebhookRequest
+} from '../models';
 
 @Injectable({
   providedIn: 'root'
@@ -14,63 +19,39 @@ export class WebhookService {
     return this.api.get<Webhook[]>(this.endpoint);
   }
 
-  getById(webhookId: string): Observable<Webhook> {
-    return this.api.get<Webhook>(`${this.endpoint}/${webhookId}`);
+  getById(id: string): Observable<Webhook> {
+    return this.api.get<Webhook>(`${this.endpoint}/${id}`);
   }
 
-  getByAccount(accountId: string): Observable<Webhook[]> {
-    return this.api.get<Webhook[]>(`${this.endpoint}/account/${accountId}`);
-  }
-
-  register(request: RegisterWebhookRequest): Observable<Webhook> {
+  create(request: CreateWebhookRequest): Observable<Webhook> {
     return this.api.post<Webhook>(this.endpoint, request);
   }
 
-  update(webhookId: string, url: string, events: string[]): Observable<Webhook> {
-    return this.api.put<Webhook>(`${this.endpoint}/${webhookId}`, { url, events });
+  update(id: string, request: UpdateWebhookRequest): Observable<Webhook> {
+    return this.api.put<Webhook>(`${this.endpoint}/${id}`, request);
   }
 
-  delete(webhookId: string): Observable<boolean> {
-    return this.api.delete<boolean>(`${this.endpoint}/${webhookId}`);
+  delete(id: string): Observable<void> {
+    return this.api.delete<void>(`${this.endpoint}/${id}`);
   }
 
-  addEvent(webhookId: string, eventType: string): Observable<boolean> {
-    return this.api.post<boolean>(`${this.endpoint}/${webhookId}/events`, { eventType });
+  enable(id: string): Observable<Webhook> {
+    return this.api.post<Webhook>(`${this.endpoint}/${id}/enable`, {});
   }
 
-  removeEvent(webhookId: string, eventType: string): Observable<boolean> {
-    return this.api.delete<boolean>(`${this.endpoint}/${webhookId}/events/${eventType}`);
+  disable(id: string): Observable<Webhook> {
+    return this.api.post<Webhook>(`${this.endpoint}/${id}/disable`, {});
   }
 
-  // Delivery operations
-  getDeliveries(webhookId: string, startDate?: Date, endDate?: Date): Observable<WebhookDelivery[]> {
-    const params: Record<string, string> = {};
-    if (startDate) params['startDate'] = startDate.toISOString();
-    if (endDate) params['endDate'] = endDate.toISOString();
-    return this.api.get<WebhookDelivery[]>(`${this.endpoint}/${webhookId}/deliveries`, params);
+  getDeliveries(id: string): Observable<WebhookDelivery[]> {
+    return this.api.get<WebhookDelivery[]>(`${this.endpoint}/${id}/deliveries`);
   }
 
-  retryDelivery(webhookId: string, deliveryId: string): Observable<boolean> {
-    return this.api.post<boolean>(`${this.endpoint}/${webhookId}/deliveries/${deliveryId}/retry`, {});
+  retryDelivery(webhookId: string, deliveryId: string): Observable<WebhookDelivery> {
+    return this.api.post<WebhookDelivery>(`${this.endpoint}/${webhookId}/deliveries/${deliveryId}/retry`, {});
   }
 
-  testWebhook(webhookId: string): Observable<WebhookDelivery> {
-    return this.api.post<WebhookDelivery>(`${this.endpoint}/${webhookId}/test`, {});
-  }
-
-  test(webhookId: string): Observable<WebhookDelivery> {
-    return this.testWebhook(webhookId);
-  }
-
-  enable(webhookId: string): Observable<boolean> {
-    return this.api.post<boolean>(`${this.endpoint}/${webhookId}/enable`, {});
-  }
-
-  disable(webhookId: string): Observable<boolean> {
-    return this.api.post<boolean>(`${this.endpoint}/${webhookId}/disable`, {});
-  }
-
-  getAvailableEvents(): Observable<string[]> {
-    return this.api.get<string[]>(`${this.endpoint}/available-events`);
+  test(id: string): Observable<WebhookDelivery> {
+    return this.api.post<WebhookDelivery>(`${this.endpoint}/${id}/test`, {});
   }
 }

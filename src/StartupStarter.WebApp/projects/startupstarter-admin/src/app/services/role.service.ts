@@ -1,7 +1,14 @@
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { ApiService } from './api.service';
-import { Role, CreateRoleRequest, UpdateRoleRequest, UserRole } from '../models';
+import {
+  Role,
+  UserRole,
+  CreateRoleRequest,
+  UpdateRoleRequest,
+  AssignRoleRequest,
+  RevokeRoleRequest
+} from '../models';
 
 @Injectable({
   providedIn: 'root'
@@ -14,51 +21,43 @@ export class RoleService {
     return this.api.get<Role[]>(this.endpoint);
   }
 
-  getById(roleId: string): Observable<Role> {
-    return this.api.get<Role>(`${this.endpoint}/${roleId}`);
-  }
-
-  getByAccount(accountId: string): Observable<Role[]> {
-    return this.api.get<Role[]>(`${this.endpoint}/account/${accountId}`);
+  getById(id: string): Observable<Role> {
+    return this.api.get<Role>(`${this.endpoint}/${id}`);
   }
 
   create(request: CreateRoleRequest): Observable<Role> {
     return this.api.post<Role>(this.endpoint, request);
   }
 
-  update(roleId: string, request: UpdateRoleRequest): Observable<Role> {
-    return this.api.put<Role>(`${this.endpoint}/${roleId}`, request);
+  update(id: string, request: UpdateRoleRequest): Observable<Role> {
+    return this.api.put<Role>(`${this.endpoint}/${id}`, request);
   }
 
-  delete(roleId: string): Observable<boolean> {
-    return this.api.delete<boolean>(`${this.endpoint}/${roleId}`);
+  delete(id: string): Observable<void> {
+    return this.api.delete<void>(`${this.endpoint}/${id}`);
   }
 
-  updatePermissions(roleId: string, permissions: string[]): Observable<boolean> {
-    return this.api.put<boolean>(`${this.endpoint}/${roleId}/permissions`, { permissions });
+  updatePermissions(id: string, permissions: string[]): Observable<Role> {
+    return this.api.put<Role>(`${this.endpoint}/${id}/permissions`, { permissions });
   }
 
-  addPermission(roleId: string, permission: string): Observable<boolean> {
-    return this.api.post<boolean>(`${this.endpoint}/${roleId}/permissions`, { permission });
+  assignToUser(request: AssignRoleRequest): Observable<UserRole> {
+    return this.api.post<UserRole>(`${this.endpoint}/${request.roleId}/assign`, request);
   }
 
-  removePermission(roleId: string, permission: string): Observable<boolean> {
-    return this.api.delete<boolean>(`${this.endpoint}/${roleId}/permissions/${permission}`);
+  revokeFromUser(request: RevokeRoleRequest): Observable<void> {
+    return this.api.post<void>(`${this.endpoint}/${request.roleId}/revoke`, request);
   }
 
-  getUsersWithRole(roleId: string): Observable<UserRole[]> {
-    return this.api.get<UserRole[]>(`${this.endpoint}/${roleId}/users`);
+  getUsersWithRole(roleId: string): Observable<string[]> {
+    return this.api.get<string[]>(`${this.endpoint}/${roleId}/users`);
   }
 
-  assignToUser(roleId: string, userId: string): Observable<boolean> {
-    return this.api.post<boolean>(`${this.endpoint}/${roleId}/users/${userId}`, {});
+  getUserRoles(userId: string): Observable<Role[]> {
+    return this.api.get<Role[]>(`users/${userId}/roles`);
   }
 
-  revokeFromUser(roleId: string, userId: string, reason?: string): Observable<boolean> {
-    return this.api.delete<boolean>(`${this.endpoint}/${roleId}/users/${userId}${reason ? `?reason=${reason}` : ''}`);
-  }
-
-  getAvailablePermissions(): Observable<string[]> {
-    return this.api.get<string[]>(`${this.endpoint}/permissions`);
+  getUserPermissions(userId: string): Observable<string[]> {
+    return this.api.get<string[]>(`users/${userId}/permissions`);
   }
 }

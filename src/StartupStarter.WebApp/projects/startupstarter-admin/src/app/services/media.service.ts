@@ -1,7 +1,12 @@
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { ApiService } from './api.service';
-import { Media, UploadMediaRequest, UpdateMediaRequest } from '../models';
+import {
+  Media,
+  UploadMediaRequest,
+  UpdateMediaRequest,
+  MediaSearchParams
+} from '../models';
 
 @Injectable({
   providedIn: 'root'
@@ -14,69 +19,44 @@ export class MediaService {
     return this.api.get<Media[]>(this.endpoint);
   }
 
-  getById(mediaId: string): Observable<Media> {
-    return this.api.get<Media>(`${this.endpoint}/${mediaId}`);
-  }
-
-  getByAccount(accountId: string): Observable<Media[]> {
-    return this.api.get<Media[]>(`${this.endpoint}/account/${accountId}`);
-  }
-
-  getByProfile(profileId: string): Observable<Media[]> {
-    return this.api.get<Media[]>(`${this.endpoint}/profile/${profileId}`);
-  }
-
-  getByTags(tags: string[]): Observable<Media[]> {
-    return this.api.get<Media[]>(`${this.endpoint}/tags`, { tags: tags.join(',') });
-  }
-
-  getByCategory(category: string): Observable<Media[]> {
-    return this.api.get<Media[]>(`${this.endpoint}/category/${category}`);
+  getById(id: string): Observable<Media> {
+    return this.api.get<Media>(`${this.endpoint}/${id}`);
   }
 
   upload(request: UploadMediaRequest): Observable<Media> {
-    const formData = new FormData();
-    formData.append('file', request.file);
-    formData.append('accountId', request.accountId);
-    formData.append('profileId', request.profileId);
-    if (request.tags) {
-      formData.append('tags', JSON.stringify(request.tags));
-    }
-    if (request.categories) {
-      formData.append('categories', JSON.stringify(request.categories));
-    }
-    return this.api.upload<Media>(this.endpoint, formData);
+    const additionalData: Record<string, string> = {};
+    if (request.profileId) additionalData['profileId'] = request.profileId;
+    if (request.tags) additionalData['tags'] = JSON.stringify(request.tags);
+    if (request.categories) additionalData['categories'] = JSON.stringify(request.categories);
+
+    return this.api.upload<Media>(`${this.endpoint}/upload`, request.file, additionalData);
   }
 
-  update(mediaId: string, request: UpdateMediaRequest): Observable<Media> {
-    return this.api.put<Media>(`${this.endpoint}/${mediaId}`, request);
+  update(id: string, request: UpdateMediaRequest): Observable<Media> {
+    return this.api.put<Media>(`${this.endpoint}/${id}`, request);
   }
 
-  delete(mediaId: string, deletionType: 'SoftDelete' | 'HardDelete' = 'SoftDelete'): Observable<boolean> {
-    return this.api.delete<boolean>(`${this.endpoint}/${mediaId}?deletionType=${deletionType}`);
+  delete(id: string): Observable<void> {
+    return this.api.delete<void>(`${this.endpoint}/${id}`);
   }
 
-  addTags(mediaId: string, tags: string[]): Observable<boolean> {
-    return this.api.post<boolean>(`${this.endpoint}/${mediaId}/tags`, { tags });
+  download(id: string): Observable<Blob> {
+    return this.api.download(`${this.endpoint}/${id}/download`);
   }
 
-  removeTags(mediaId: string, tags: string[]): Observable<boolean> {
-    return this.api.delete<boolean>(`${this.endpoint}/${mediaId}/tags?tags=${tags.join(',')}`);
+  addTags(id: string, tags: string[]): Observable<Media> {
+    return this.api.post<Media>(`${this.endpoint}/${id}/tags`, { tags });
   }
 
-  addCategories(mediaId: string, categories: string[]): Observable<boolean> {
-    return this.api.post<boolean>(`${this.endpoint}/${mediaId}/categories`, { categories });
+  removeTags(id: string, tags: string[]): Observable<Media> {
+    return this.api.delete<Media>(`${this.endpoint}/${id}/tags`);
   }
 
-  removeCategories(mediaId: string, categories: string[]): Observable<boolean> {
-    return this.api.delete<boolean>(`${this.endpoint}/${mediaId}/categories?categories=${categories.join(',')}`);
+  addCategories(id: string, categories: string[]): Observable<Media> {
+    return this.api.post<Media>(`${this.endpoint}/${id}/categories`, { categories });
   }
 
-  download(mediaId: string): Observable<Blob> {
-    return this.api.get<Blob>(`${this.endpoint}/${mediaId}/download`);
-  }
-
-  getProcessingStatus(mediaId: string): Observable<{ status: string; progress: number }> {
-    return this.api.get<{ status: string; progress: number }>(`${this.endpoint}/${mediaId}/processing-status`);
+  search(params: MediaSearchParams): Observable<Media[]> {
+    return this.api.get<Media[]>(`${this.endpoint}/search`, params as Record<string, string | number | boolean>);
   }
 }
