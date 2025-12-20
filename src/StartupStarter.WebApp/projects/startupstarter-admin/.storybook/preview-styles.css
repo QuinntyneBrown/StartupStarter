@@ -1,0 +1,65 @@
+/* Simplified styles for Storybook preview */
+/* Minimal CSS to provide basic styling */
+
+/* Basic body styles */
+body {
+  margin: 0;
+  font-family: Roboto, "Helvetica Neue", sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  color: rgba(0, 0, 0, 0.87);
+  background-color: #fafafa;
+}
+
+/* Material table improvements */
+.mat-mdc-table {
+  width: 100%;
+}
+
+.mat-mdc-table .mat-mdc-header-cell {
+  font-weight: 500;
+}
+
+.mat-mdc-table .mat-mdc-row:hover {
+  background-color: rgba(0, 0, 0, 0.04);
+}
+
+/* Form field spacing */
+.mat-mdc-form-field.full-width {
+  width: 100%;
+}
+
+/* Card improvements */
+.mat-mdc-card {
+  margin-bottom: 16px;
+}
+
+/* Responsive helpers */
+@media (max-width: 599px) {
+  .hide-mobile {
+    display: none !important;
+  }
+}
+
+@media (min-width: 600px) {
+  .hide-desktop {
+    display: none !important;
+  }
+}
+
+/* Utility classes */
+.text-center { text-align: center; }
+.text-right { text-align: right; }
+.mt-1 { margin-top: 8px; }
+.mt-2 { margin-top: 16px; }
+.mb-1 { margin-bottom: 8px; }
+.mb-2 { margin-bottom: 16px; }
+.p-1 { padding: 8px; }
+.p-2 { padding: 16px; }
+.gap-1 { gap: 8px; }
+.gap-2 { gap: 16px; }
+.flex { display: flex; }
+.flex-col { flex-direction: column; }
+.items-center { align-items: center; }
+.justify-between { justify-content: space-between; }
+.justify-center { justify-content: center; }
