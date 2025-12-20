@@ -1,0 +1,258 @@
+// Include theming for Angular Material with `mat.theme()`.
+// This Sass mixin will define CSS variables that are used for styling Angular Material
+// components according to the Material 3 design spec.
+@use '@angular/material' as mat;
+
+// Design Tokens - Spacing
+:root {
+  // Spacing scale (4px base)
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 32px;
+  --spacing-2xl: 48px;
+  --spacing-3xl: 64px;
+
+  // Layout
+  --sidebar-width: 256px;
+  --header-height: 64px;
+  --content-max-width: 1200px;
+
+  // Border radius
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-full: 9999px;
+
+  // Shadows
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+
+  // Transitions
+  --transition-fast: 150ms ease-in-out;
+  --transition-normal: 250ms ease-in-out;
+  --transition-slow: 350ms ease-in-out;
+}
+
+html {
+  height: 100%;
+  @include mat.theme((
+    color: (
+      primary: mat.$azure-palette,
+      tertiary: mat.$blue-palette,
+    ),
+    typography: Roboto,
+    density: 0,
+  ));
+}
+
+body {
+  // Support light and dark mode based on user preference
+  color-scheme: light dark;
+
+  background-color: var(--mat-sys-surface);
+  color: var(--mat-sys-on-surface);
+  font: var(--mat-sys-body-medium);
+  margin: 0;
+  height: 100%;
+}
+
+// Global typography utilities
+.text-headline-large {
+  font: var(--mat-sys-headline-large);
+}
+
+.text-headline-medium {
+  font: var(--mat-sys-headline-medium);
+}
+
+.text-headline-small {
+  font: var(--mat-sys-headline-small);
+}
+
+.text-title-large {
+  font: var(--mat-sys-title-large);
+}
+
+.text-title-medium {
+  font: var(--mat-sys-title-medium);
+}
+
+.text-title-small {
+  font: var(--mat-sys-title-small);
+}
+
+.text-body-large {
+  font: var(--mat-sys-body-large);
+}
+
+.text-body-medium {
+  font: var(--mat-sys-body-medium);
+}
+
+.text-body-small {
+  font: var(--mat-sys-body-small);
+}
+
+.text-label-large {
+  font: var(--mat-sys-label-large);
+}
+
+.text-label-medium {
+  font: var(--mat-sys-label-medium);
+}
+
+.text-label-small {
+  font: var(--mat-sys-label-small);
+}
+
+// Responsive breakpoints
+$breakpoints: (
+  'mobile': 0,
+  'tablet': 768px,
+  'desktop': 1024px,
+  'wide': 1440px
+);
+
+@mixin respond-to($breakpoint) {
+  @if map-has-key($breakpoints, $breakpoint) {
+    @media (min-width: map-get($breakpoints, $breakpoint)) {
+      @content;
+    }
+  }
+}
+
+// BEM Helper mixins
+@mixin block($name) {
+  .#{$name} {
+    @content;
+  }
+}
+
+// Utility classes
+.flex {
+  display: flex;
+}
+
+.flex-col {
+  flex-direction: column;
+}
+
+.flex-row {
+  flex-direction: row;
+}
+
+.items-center {
+  align-items: center;
+}
+
+.justify-center {
+  justify-content: center;
+}
+
+.justify-between {
+  justify-content: space-between;
+}
+
+.gap-xs {
+  gap: var(--spacing-xs);
+}
+
+.gap-sm {
+  gap: var(--spacing-sm);
+}
+
+.gap-md {
+  gap: var(--spacing-md);
+}
+
+.gap-lg {
+  gap: var(--spacing-lg);
+}
+
+.gap-xl {
+  gap: var(--spacing-xl);
+}
+
+.p-xs {
+  padding: var(--spacing-xs);
+}
+
+.p-sm {
+  padding: var(--spacing-sm);
+}
+
+.p-md {
+  padding: var(--spacing-md);
+}
+
+.p-lg {
+  padding: var(--spacing-lg);
+}
+
+.p-xl {
+  padding: var(--spacing-xl);
+}
+
+.m-xs {
+  margin: var(--spacing-xs);
+}
+
+.m-sm {
+  margin: var(--spacing-sm);
+}
+
+.m-md {
+  margin: var(--spacing-md);
+}
+
+.m-lg {
+  margin: var(--spacing-lg);
+}
+
+.m-xl {
+  margin: var(--spacing-xl);
+}
+
+.w-full {
+  width: 100%;
+}
+
+.h-full {
+  height: 100%;
+}
+
+// Hide scrollbar but keep functionality
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+// Custom scrollbar styling
+.scrollbar-custom {
+  &::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: var(--mat-sys-surface-container);
+    border-radius: var(--radius-full);
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: var(--mat-sys-outline);
+    border-radius: var(--radius-full);
+
+    &:hover {
+      background: var(--mat-sys-on-surface-variant);
+    }
+  }
+}
