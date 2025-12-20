@@ -23,8 +23,8 @@ import { AuthService } from '../../services';
     MatProgressSpinnerModule
   ],
   template: `
-    <div class="login-container">
-      <mat-card class="login-card">
+    <div class="login">
+      <mat-card class="login__card">
         <mat-card-header>
           <mat-card-title>Welcome Back</mat-card-title>
           <mat-card-subtitle>Sign in to your account</mat-card-subtitle>
@@ -32,12 +32,12 @@ import { AuthService } from '../../services';
 
         <mat-card-content>
           @if (errorMessage()) {
-            <div class="error-message">{{ errorMessage() }}</div>
+            <div class="login__error-message">{{ errorMessage() }}</div>
           }
 
           @if (!showMfa()) {
             <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
-              <mat-form-field appearance="outline" class="full-width">
+              <mat-form-field appearance="outline" class="login__field">
                 <mat-label>Email</mat-label>
                 <input matInput formControlName="email" placeholder="you@example.com">
                 <mat-icon matSuffix>email</mat-icon>
@@ -49,7 +49,7 @@ import { AuthService } from '../../services';
                 }
               </mat-form-field>
 
-              <mat-form-field appearance="outline" class="full-width">
+              <mat-form-field appearance="outline" class="login__field">
                 <mat-label>Password</mat-label>
                 <input matInput [type]="hidePassword() ? 'password' : 'text'" formControlName="password">
                 <button mat-icon-button matSuffix type="button" (click)="togglePassword()">
@@ -60,7 +60,7 @@ import { AuthService } from '../../services';
                 }
               </mat-form-field>
 
-              <button mat-flat-button color="primary" type="submit" class="full-width submit-btn"
+              <button mat-flat-button color="primary" type="submit" class="login__submit-btn"
                       [disabled]="isLoading() || loginForm.invalid">
                 @if (isLoading()) {
                   <mat-spinner diameter="20"></mat-spinner>
@@ -71,9 +71,9 @@ import { AuthService } from '../../services';
             </form>
           } @else {
             <form [formGroup]="mfaForm" (ngSubmit)="onVerifyMfa()">
-              <p class="mfa-message">Enter the verification code from your authenticator app</p>
+              <p class="login__mfa-message">Enter the verification code from your authenticator app</p>
 
-              <mat-form-field appearance="outline" class="full-width">
+              <mat-form-field appearance="outline" class="login__field">
                 <mat-label>Verification Code</mat-label>
                 <input matInput formControlName="code" maxlength="6" placeholder="000000">
                 @if (mfaForm.get('code')?.hasError('required')) {
@@ -81,7 +81,7 @@ import { AuthService } from '../../services';
                 }
               </mat-form-field>
 
-              <button mat-flat-button color="primary" type="submit" class="full-width submit-btn"
+              <button mat-flat-button color="primary" type="submit" class="login__submit-btn"
                       [disabled]="isLoading() || mfaForm.invalid">
                 @if (isLoading()) {
                   <mat-spinner diameter="20"></mat-spinner>
@@ -90,7 +90,7 @@ import { AuthService } from '../../services';
                 }
               </button>
 
-              <button mat-button type="button" class="full-width" (click)="backToLogin()">
+              <button mat-button type="button" class="login__back-btn" (click)="backToLogin()">
                 Back to Login
               </button>
             </form>
@@ -104,7 +104,7 @@ import { AuthService } from '../../services';
     </div>
   `,
   styles: [`
-    .login-container {
+    .login {
       min-height: 100vh;
       display: flex;
       align-items: center;
@@ -113,7 +113,7 @@ import { AuthService } from '../../services';
       padding: 24px;
     }
 
-    .login-card {
+    .login__card {
       width: 100%;
       max-width: 400px;
       padding: 24px;
@@ -128,16 +128,21 @@ import { AuthService } from '../../services';
       margin-bottom: 8px;
     }
 
-    .full-width {
+    .login__field {
       width: 100%;
     }
 
-    .submit-btn {
+    .login__submit-btn {
+      width: 100%;
       margin-top: 16px;
       height: 48px;
     }
 
-    .error-message {
+    .login__back-btn {
+      width: 100%;
+    }
+
+    .login__error-message {
       background-color: #ffebee;
       color: #c62828;
       padding: 12px;
@@ -146,7 +151,7 @@ import { AuthService } from '../../services';
       font-size: 14px;
     }
 
-    .mfa-message {
+    .login__mfa-message {
       color: rgba(0, 0, 0, 0.6);
       margin-bottom: 16px;
       text-align: center;

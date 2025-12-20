@@ -28,41 +28,41 @@ import { SystemHealth, SystemMetrics, SystemMaintenance, SystemBackup, SystemErr
     @if (isLoading()) {
       <app-loading-spinner message="Loading system info..."></app-loading-spinner>
     } @else {
-      <div class="metrics-grid">
+      <div class="system__metrics-grid">
         <mat-card>
           <mat-card-header><mat-card-title>System Status</mat-card-title></mat-card-header>
           <mat-card-content>
-            <div class="status-indicator" [class]="health()?.status?.toLowerCase()">
+            <div class="system__status-indicator" [class]="health()?.status?.toLowerCase()">
               <mat-icon>{{ health()?.status === 'Healthy' ? 'check_circle' : health()?.status === 'Degraded' ? 'warning' : 'error' }}</mat-icon>
               <span>{{ health()?.status }}</span>
             </div>
-            <p class="uptime">Uptime: {{ formatUptime(health()?.uptime || 0) }}</p>
+            <p class="system__uptime">Uptime: {{ formatUptime(health()?.uptime || 0) }}</p>
           </mat-card-content>
         </mat-card>
 
         <mat-card>
           <mat-card-header><mat-card-title>Performance</mat-card-title></mat-card-header>
           <mat-card-content>
-            <div class="metric"><span>Requests/sec</span><strong>{{ metrics()?.requestsPerSecond | number:'1.0-0' }}</strong></div>
-            <div class="metric"><span>Response Time (p95)</span><strong>{{ metrics()?.responseTimeP95 }}ms</strong></div>
-            <div class="metric"><span>Error Rate</span><strong>{{ metrics()?.errorRate | percent:'1.2-2' }}</strong></div>
+            <div class="system__metric"><span>Requests/sec</span><strong>{{ metrics()?.requestsPerSecond | number:'1.0-0' }}</strong></div>
+            <div class="system__metric"><span>Response Time (p95)</span><strong>{{ metrics()?.responseTimeP95 }}ms</strong></div>
+            <div class="system__metric"><span>Error Rate</span><strong>{{ metrics()?.errorRate | percent:'1.2-2' }}</strong></div>
           </mat-card-content>
         </mat-card>
 
         <mat-card>
           <mat-card-header><mat-card-title>Resources</mat-card-title></mat-card-header>
           <mat-card-content>
-            <div class="resource">
+            <div class="system__resource">
               <span>CPU</span>
               <mat-progress-bar mode="determinate" [value]="(metrics()?.cpuUsage || 0) * 100"></mat-progress-bar>
               <span>{{ (metrics()?.cpuUsage || 0) * 100 | number:'1.0-0' }}%</span>
             </div>
-            <div class="resource">
+            <div class="system__resource">
               <span>Memory</span>
               <mat-progress-bar mode="determinate" [value]="(metrics()?.memoryUsage || 0) * 100"></mat-progress-bar>
               <span>{{ (metrics()?.memoryUsage || 0) * 100 | number:'1.0-0' }}%</span>
             </div>
-            <div class="resource">
+            <div class="system__resource">
               <span>Disk</span>
               <mat-progress-bar mode="determinate" [value]="(metrics()?.diskUsage || 0) * 100"></mat-progress-bar>
               <span>{{ (metrics()?.diskUsage || 0) * 100 | number:'1.0-0' }}%</span>
@@ -73,8 +73,8 @@ import { SystemHealth, SystemMetrics, SystemMaintenance, SystemBackup, SystemErr
 
       <mat-tab-group>
         <mat-tab label="Maintenance">
-          <div class="tab-content">
-            <table mat-table [dataSource]="maintenances()" class="full-width">
+          <div class="system__tab-content">
+            <table mat-table [dataSource]="maintenances()" class="system__table">
               <ng-container matColumnDef="description"><th mat-header-cell *matHeaderCellDef>Description</th><td mat-cell *matCellDef="let m">{{ m.description }}</td></ng-container>
               <ng-container matColumnDef="scheduled"><th mat-header-cell *matHeaderCellDef>Scheduled</th><td mat-cell *matCellDef="let m">{{ m.scheduledStartTime | date:'short' }}</td></ng-container>
               <ng-container matColumnDef="status"><th mat-header-cell *matHeaderCellDef>Status</th><td mat-cell *matCellDef="let m"><app-status-badge [label]="m.status" [type]="getMaintenanceStatusType(m.status)"></app-status-badge></td></ng-container>
@@ -84,8 +84,8 @@ import { SystemHealth, SystemMetrics, SystemMaintenance, SystemBackup, SystemErr
           </div>
         </mat-tab>
         <mat-tab label="Backups">
-          <div class="tab-content">
-            <table mat-table [dataSource]="backups()" class="full-width">
+          <div class="system__tab-content">
+            <table mat-table [dataSource]="backups()" class="system__table">
               <ng-container matColumnDef="type"><th mat-header-cell *matHeaderCellDef>Type</th><td mat-cell *matCellDef="let b">{{ b.backupType }}</td></ng-container>
               <ng-container matColumnDef="started"><th mat-header-cell *matHeaderCellDef>Started</th><td mat-cell *matCellDef="let b">{{ b.startedAt | date:'short' }}</td></ng-container>
               <ng-container matColumnDef="size"><th mat-header-cell *matHeaderCellDef>Size</th><td mat-cell *matCellDef="let b">{{ formatSize(b.backupSize) }}</td></ng-container>
@@ -96,8 +96,8 @@ import { SystemHealth, SystemMetrics, SystemMaintenance, SystemBackup, SystemErr
           </div>
         </mat-tab>
         <mat-tab label="Errors">
-          <div class="tab-content">
-            <table mat-table [dataSource]="errors()" class="full-width">
+          <div class="system__tab-content">
+            <table mat-table [dataSource]="errors()" class="system__table">
               <ng-container matColumnDef="severity"><th mat-header-cell *matHeaderCellDef>Severity</th><td mat-cell *matCellDef="let e"><app-status-badge [label]="e.severity" [type]="getSeverityType(e.severity)"></app-status-badge></td></ng-container>
               <ng-container matColumnDef="type"><th mat-header-cell *matHeaderCellDef>Type</th><td mat-cell *matCellDef="let e">{{ e.errorType }}</td></ng-container>
               <ng-container matColumnDef="message"><th mat-header-cell *matHeaderCellDef>Message</th><td mat-cell *matCellDef="let e">{{ e.errorMessage }}</td></ng-container>
@@ -111,16 +111,16 @@ import { SystemHealth, SystemMetrics, SystemMaintenance, SystemBackup, SystemErr
     }
   `,
   styles: [`
-    .metrics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; margin-bottom: 24px; }
-    .status-indicator { display: flex; align-items: center; gap: 8px; font-size: 24px; font-weight: 500; }
-    .status-indicator.healthy { color: #4caf50; }
-    .status-indicator.degraded { color: #ff9800; }
-    .status-indicator.unhealthy { color: #f44336; }
-    .uptime { color: rgba(0,0,0,0.6); margin-top: 8px; }
-    .metric { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid rgba(0,0,0,0.1); }
-    .resource { display: grid; grid-template-columns: 80px 1fr 50px; align-items: center; gap: 8px; padding: 8px 0; }
-    .tab-content { padding: 16px 0; }
-    .full-width { width: 100%; }
+    .system__metrics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; margin-bottom: 24px; }
+    .system__status-indicator { display: flex; align-items: center; gap: 8px; font-size: 24px; font-weight: 500; }
+    .system__status-indicator.healthy { color: #4caf50; }
+    .system__status-indicator.degraded { color: #ff9800; }
+    .system__status-indicator.unhealthy { color: #f44336; }
+    .system__uptime { color: rgba(0,0,0,0.6); margin-top: 8px; }
+    .system__metric { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid rgba(0,0,0,0.1); }
+    .system__resource { display: grid; grid-template-columns: 80px 1fr 50px; align-items: center; gap: 8px; padding: 8px 0; }
+    .system__tab-content { padding: 16px 0; }
+    .system__table { width: 100%; }
   `]
 })
 export class SystemComponent implements OnInit {

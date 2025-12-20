@@ -30,9 +30,9 @@ import { AuditLog, AuditAction, ExportFormat } from '../../models';
       </button>
     </app-page-header>
 
-    <mat-card class="filters-card">
+    <mat-card class="audit-log__filters-card">
       <mat-card-content>
-        <div class="filters">
+        <div class="audit-log__filters">
           <mat-form-field appearance="outline">
             <mat-label>Entity Type</mat-label>
             <mat-select [(ngModel)]="filters.entityType" (selectionChange)="load()">
@@ -76,7 +76,7 @@ import { AuditLog, AuditAction, ExportFormat } from '../../models';
         } @else if (logs().length === 0) {
           <app-empty-state icon="history" title="No audit logs found" message="Try adjusting your filters"></app-empty-state>
         } @else {
-          <table mat-table [dataSource]="logs()" class="full-width">
+          <table mat-table [dataSource]="logs()" class="audit-log__table">
             <ng-container matColumnDef="timestamp">
               <th mat-header-cell *matHeaderCellDef>Timestamp</th>
               <td mat-cell *matCellDef="let log">{{ log.timestamp | date:'short' }}</td>
@@ -107,10 +107,10 @@ import { AuditLog, AuditAction, ExportFormat } from '../../models';
     </mat-card>
   `,
   styles: [`
-    .filters-card { margin-bottom: 16px; }
-    .filters { display: flex; gap: 16px; flex-wrap: wrap; }
-    .filters mat-form-field { min-width: 150px; }
-    .full-width { width: 100%; }
+    .audit-log__filters-card { margin-bottom: 16px; }
+    .audit-log__filters { display: flex; gap: 16px; flex-wrap: wrap; }
+    .audit-log__filters mat-form-field { min-width: 150px; }
+    .audit-log__table { width: 100%; }
   `]
 })
 export class AuditLogComponent implements OnInit {

@@ -32,9 +32,9 @@ interface NavItem {
     MatDividerModule
   ],
   template: `
-    <mat-sidenav-container class="sidenav-container">
-      <mat-sidenav #sidenav mode="side" [opened]="sidenavOpen()" class="sidenav">
-        <div class="sidenav-header">
+    <mat-sidenav-container class="admin-layout">
+      <mat-sidenav #sidenav mode="side" [opened]="sidenavOpen()" class="admin-layout__sidenav">
+        <div class="admin-layout__sidenav-header">
           <h2>StartupStarter</h2>
         </div>
         <mat-nav-list>
@@ -47,17 +47,17 @@ interface NavItem {
         </mat-nav-list>
       </mat-sidenav>
 
-      <mat-sidenav-content class="sidenav-content">
-        <mat-toolbar color="primary" class="toolbar">
+      <mat-sidenav-content class="admin-layout__content">
+        <mat-toolbar color="primary" class="admin-layout__toolbar">
           <button mat-icon-button (click)="toggleSidenav()">
             <mat-icon>menu</mat-icon>
           </button>
-          <span class="toolbar-spacer"></span>
+          <span class="admin-layout__toolbar-spacer"></span>
           <button mat-icon-button [matMenuTriggerFor]="userMenu">
             <mat-icon>account_circle</mat-icon>
           </button>
           <mat-menu #userMenu="matMenu">
-            <div class="user-menu-header">
+            <div class="admin-layout__user-menu-header">
               <strong>{{ user()?.firstName }} {{ user()?.lastName }}</strong>
               <small>{{ user()?.email }}</small>
             </div>
@@ -73,62 +73,62 @@ interface NavItem {
           </mat-menu>
         </mat-toolbar>
 
-        <main class="main-content">
+        <main class="admin-layout__main">
           <router-outlet></router-outlet>
         </main>
       </mat-sidenav-content>
     </mat-sidenav-container>
   `,
   styles: [`
-    .sidenav-container {
+    .admin-layout {
       height: 100vh;
     }
 
-    .sidenav {
+    .admin-layout__sidenav {
       width: 260px;
       background: #fafafa;
     }
 
-    .sidenav-header {
+    .admin-layout__sidenav-header {
       padding: 16px 24px;
       border-bottom: 1px solid rgba(0, 0, 0, 0.12);
     }
 
-    .sidenav-header h2 {
+    .admin-layout__sidenav-header h2 {
       margin: 0;
       font-size: 20px;
       font-weight: 500;
       color: #3f51b5;
     }
 
-    .sidenav-content {
+    .admin-layout__content {
       display: flex;
       flex-direction: column;
     }
 
-    .toolbar {
+    .admin-layout__toolbar {
       position: sticky;
       top: 0;
       z-index: 100;
     }
 
-    .toolbar-spacer {
+    .admin-layout__toolbar-spacer {
       flex: 1;
     }
 
-    .main-content {
+    .admin-layout__main {
       padding: 24px;
       flex: 1;
       overflow-y: auto;
     }
 
-    .user-menu-header {
+    .admin-layout__user-menu-header {
       padding: 16px;
       display: flex;
       flex-direction: column;
     }
 
-    .user-menu-header small {
+    .admin-layout__user-menu-header small {
       color: rgba(0, 0, 0, 0.6);
       margin-top: 4px;
     }

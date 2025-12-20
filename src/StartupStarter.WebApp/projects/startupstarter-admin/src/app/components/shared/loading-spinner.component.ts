@@ -6,15 +6,15 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
   standalone: true,
   imports: [MatProgressSpinnerModule],
   template: `
-    <div class="loading-container">
+    <div class="loading-spinner">
       <mat-spinner [diameter]="diameter"></mat-spinner>
       @if (message) {
-        <p class="loading-message">{{ message }}</p>
+        <p class="loading-spinner__message">{{ message }}</p>
       }
     </div>
   `,
   styles: [`
-    .loading-container {
+    .loading-spinner {
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -23,7 +23,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
       gap: 16px;
     }
 
-    .loading-message {
+    .loading-spinner__message {
       color: rgba(0, 0, 0, 0.6);
       font-size: 14px;
       margin: 0;
