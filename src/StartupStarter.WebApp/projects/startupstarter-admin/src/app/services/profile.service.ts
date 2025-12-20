@@ -4,9 +4,10 @@ import { ApiService } from './api.service';
 import {
   Profile,
   ProfilePreferences,
+  ProfileShare,
   CreateProfileRequest,
   UpdateProfileRequest,
-  PermissionLevel
+  ShareProfileRequest
 } from '../models';
 
 @Injectable({
@@ -20,61 +21,47 @@ export class ProfileService {
     return this.api.get<Profile[]>(this.endpoint);
   }
 
-  getById(profileId: string): Observable<Profile> {
-    return this.api.get<Profile>(`${this.endpoint}/${profileId}`);
-  }
-
-  getByAccount(accountId: string): Observable<Profile[]> {
-    return this.api.get<Profile[]>(`${this.endpoint}/account/${accountId}`);
-  }
-
-  getByUserId(userId: string): Observable<Profile> {
-    return this.api.get<Profile>(`${this.endpoint}/user/${userId}`);
+  getById(id: string): Observable<Profile> {
+    return this.api.get<Profile>(`${this.endpoint}/${id}`);
   }
 
   create(request: CreateProfileRequest): Observable<Profile> {
     return this.api.post<Profile>(this.endpoint, request);
   }
 
-  update(profileId: string, request: UpdateProfileRequest): Observable<Profile> {
-    return this.api.put<Profile>(`${this.endpoint}/${profileId}`, request);
+  update(id: string, request: UpdateProfileRequest): Observable<Profile> {
+    return this.api.put<Profile>(`${this.endpoint}/${id}`, request);
   }
 
-  delete(profileId: string): Observable<boolean> {
-    return this.api.delete<boolean>(`${this.endpoint}/${profileId}`);
+  delete(id: string): Observable<void> {
+    return this.api.delete<void>(`${this.endpoint}/${id}`);
   }
 
-  setAsDefault(profileId: string): Observable<boolean> {
-    return this.api.post<boolean>(`${this.endpoint}/${profileId}/set-default`, {});
+  updateAvatar(id: string, file: File): Observable<Profile> {
+    return this.api.upload<Profile>(`${this.endpoint}/${id}/avatar`, file);
   }
 
-  updateAvatar(profileId: string, avatarFile: File): Observable<Profile> {
-    const formData = new FormData();
-    formData.append('avatar', avatarFile);
-    return this.api.upload<Profile>(`${this.endpoint}/${profileId}/avatar`, formData);
+  getPreferences(id: string): Observable<ProfilePreferences[]> {
+    return this.api.get<ProfilePreferences[]>(`${this.endpoint}/${id}/preferences`);
   }
 
-  getPreferences(profileId: string): Observable<ProfilePreferences[]> {
-    return this.api.get<ProfilePreferences[]>(`${this.endpoint}/${profileId}/preferences`);
+  updatePreferences(id: string, category: string, preferences: Record<string, unknown>): Observable<ProfilePreferences> {
+    return this.api.put<ProfilePreferences>(`${this.endpoint}/${id}/preferences`, { category, preferences });
   }
 
-  updatePreferences(profileId: string, category: string, preferences: Record<string, unknown>): Observable<boolean> {
-    return this.api.put<boolean>(`${this.endpoint}/${profileId}/preferences/${category}`, preferences);
+  share(id: string, request: ShareProfileRequest): Observable<ProfileShare[]> {
+    return this.api.post<ProfileShare[]>(`${this.endpoint}/${id}/share`, request);
   }
 
-  share(profileId: string, userIds: string[], permissionLevel: PermissionLevel): Observable<boolean> {
-    return this.api.post<boolean>(`${this.endpoint}/${profileId}/share`, { userIds, permissionLevel });
+  revokeShare(id: string, userId: string): Observable<void> {
+    return this.api.delete<void>(`${this.endpoint}/${id}/share/${userId}`);
   }
 
-  revokeShare(profileId: string, userIds: string[]): Observable<boolean> {
-    return this.api.post<boolean>(`${this.endpoint}/${profileId}/revoke-share`, { userIds });
+  setAsDefault(id: string): Observable<Profile> {
+    return this.api.post<Profile>(`${this.endpoint}/${id}/default`, {});
   }
 
-  addDashboard(profileId: string, dashboardId: string): Observable<boolean> {
-    return this.api.post<boolean>(`${this.endpoint}/${profileId}/dashboards/${dashboardId}`, {});
-  }
-
-  removeDashboard(profileId: string, dashboardId: string): Observable<boolean> {
-    return this.api.delete<boolean>(`${this.endpoint}/${profileId}/dashboards/${dashboardId}`);
+  getShares(id: string): Observable<ProfileShare[]> {
+    return this.api.get<ProfileShare[]>(`${this.endpoint}/${id}/shares`);
   }
 }

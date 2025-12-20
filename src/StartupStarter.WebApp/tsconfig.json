@@ -25,9 +25,6 @@
   "references": [
     {
       "path": "./projects/startupstarter-admin/tsconfig.app.json"
-    },
-    {
-      "path": "./projects/startupstarter-admin/tsconfig.spec.json"
     }
   ]
 }

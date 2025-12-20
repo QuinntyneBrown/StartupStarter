@@ -1,3 +1,17 @@
+export enum UserStatus {
+  Invited = 'Invited',
+  Active = 'Active',
+  Inactive = 'Inactive',
+  Locked = 'Locked',
+  Deleted = 'Deleted'
+}
+
+export enum ActivationMethod {
+  Email = 'Email',
+  Admin = 'Admin',
+  SSO = 'SSO'
+}
+
 export interface User {
   userId: string;
   email: string;
@@ -5,13 +19,14 @@ export interface User {
   lastName: string;
   accountId: string;
   status: UserStatus;
-  roleIds: string[];
   createdAt: Date;
   updatedAt?: Date;
   activatedAt?: Date;
   deactivatedAt?: Date;
   lockedAt?: Date;
   lockReason?: string;
+  deletedAt?: Date;
+  roles?: string[];
 }
 
 export interface UserInvitation {
@@ -22,42 +37,28 @@ export interface UserInvitation {
   sentAt: Date;
   expiresAt: Date;
   acceptedAt?: Date;
-  acceptedByUserId?: string;
   isAccepted: boolean;
   isExpired: boolean;
   roleIds: string[];
 }
 
-export enum UserStatus {
-  Invited = 'Invited',
-  Active = 'Active',
-  Inactive = 'Inactive',
-  Locked = 'Locked',
-  Deleted = 'Deleted'
-}
-
-export enum ActivationMethod {
-  EmailVerification = 'EmailVerification',
-  AdminActivation = 'AdminActivation',
-  AutoActivation = 'AutoActivation'
-}
-
-export interface CreateUserRequest {
+export interface InviteUserRequest {
   email: string;
   firstName: string;
   lastName: string;
-  accountId: string;
-  roleIds?: string[];
+  roleIds: string[];
 }
 
 export interface UpdateUserRequest {
   firstName?: string;
   lastName?: string;
-  roleIds?: string[];
 }
 
-export interface SendInvitationRequest {
-  email: string;
-  accountId: string;
-  roleIds?: string[];
+export interface DeactivateUserRequest {
+  reason: string;
+}
+
+export interface LockUserRequest {
+  reason: string;
+  durationMinutes?: number;
 }

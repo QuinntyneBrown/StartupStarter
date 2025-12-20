@@ -1,7 +1,13 @@
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { ApiService } from './api.service';
-import { Account, CreateAccountRequest, UpdateAccountRequest, AccountSettings } from '../models';
+import {
+  Account,
+  AccountSettings,
+  CreateAccountRequest,
+  UpdateAccountRequest,
+  SuspendAccountRequest
+} from '../models';
 
 @Injectable({
   providedIn: 'root'
@@ -14,47 +20,47 @@ export class AccountService {
     return this.api.get<Account[]>(this.endpoint);
   }
 
-  getById(accountId: string): Observable<Account> {
-    return this.api.get<Account>(`${this.endpoint}/${accountId}`);
+  getById(id: string): Observable<Account> {
+    return this.api.get<Account>(`${this.endpoint}/${id}`);
   }
 
-  getByOwner(ownerUserId: string): Observable<Account[]> {
-    return this.api.get<Account[]>(`${this.endpoint}/owner/${ownerUserId}`);
+  getByOwner(userId: string): Observable<Account[]> {
+    return this.api.get<Account[]>(`${this.endpoint}/owner/${userId}`);
   }
 
   create(request: CreateAccountRequest): Observable<Account> {
     return this.api.post<Account>(this.endpoint, request);
   }
 
-  update(accountId: string, request: UpdateAccountRequest): Observable<Account> {
-    return this.api.put<Account>(`${this.endpoint}/${accountId}`, request);
+  update(id: string, request: UpdateAccountRequest): Observable<Account> {
+    return this.api.put<Account>(`${this.endpoint}/${id}`, request);
   }
 
-  delete(accountId: string): Observable<boolean> {
-    return this.api.delete<boolean>(`${this.endpoint}/${accountId}`);
+  delete(id: string): Observable<void> {
+    return this.api.delete<void>(`${this.endpoint}/${id}`);
   }
 
-  suspend(accountId: string, reason: string, duration?: number): Observable<boolean> {
-    return this.api.post<boolean>(`${this.endpoint}/${accountId}/suspend`, { reason, duration });
+  suspend(id: string, request: SuspendAccountRequest): Observable<Account> {
+    return this.api.post<Account>(`${this.endpoint}/${id}/suspend`, request);
   }
 
-  reactivate(accountId: string): Observable<boolean> {
-    return this.api.post<boolean>(`${this.endpoint}/${accountId}/reactivate`, {});
+  reactivate(id: string): Observable<Account> {
+    return this.api.post<Account>(`${this.endpoint}/${id}/reactivate`, {});
   }
 
-  changeSubscriptionTier(accountId: string, newTier: string): Observable<boolean> {
-    return this.api.post<boolean>(`${this.endpoint}/${accountId}/subscription`, { newTier });
+  changeSubscription(id: string, subscriptionTier: string): Observable<Account> {
+    return this.api.put<Account>(`${this.endpoint}/${id}/subscription`, { subscriptionTier });
   }
 
-  transferOwnership(accountId: string, newOwnerUserId: string): Observable<boolean> {
-    return this.api.post<boolean>(`${this.endpoint}/${accountId}/transfer-ownership`, { newOwnerUserId });
+  transferOwnership(id: string, newOwnerId: string): Observable<Account> {
+    return this.api.put<Account>(`${this.endpoint}/${id}/owner`, { newOwnerId });
   }
 
-  getSettings(accountId: string): Observable<AccountSettings[]> {
-    return this.api.get<AccountSettings[]>(`${this.endpoint}/${accountId}/settings`);
+  getSettings(id: string): Observable<AccountSettings[]> {
+    return this.api.get<AccountSettings[]>(`${this.endpoint}/${id}/settings`);
   }
 
-  updateSettings(accountId: string, category: string, settings: Record<string, unknown>): Observable<boolean> {
-    return this.api.put<boolean>(`${this.endpoint}/${accountId}/settings/${category}`, settings);
+  updateSettings(id: string, settings: Partial<AccountSettings>): Observable<AccountSettings> {
+    return this.api.put<AccountSettings>(`${this.endpoint}/${id}/settings`, settings);
   }
 }

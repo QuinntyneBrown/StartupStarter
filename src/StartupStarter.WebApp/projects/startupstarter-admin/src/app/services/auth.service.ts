@@ -1,19 +1,22 @@
 import { Injectable, inject, signal, computed } from '@angular/core';
 import { Router } from '@angular/router';
-import { Observable, tap, catchError, of, BehaviorSubject } from 'rxjs';
+import { Observable, tap, of } from 'rxjs';
 import { ApiService } from './api.service';
 import {
   LoginRequest,
   LoginResponse,
   AuthenticatedUser,
-  PasswordResetInitRequest,
-  PasswordResetCompleteRequest,
-  EnableMfaRequest,
+  UserSession,
+  MfaSetup,
   VerifyMfaRequest,
-  UserSession
+  ForgotPasswordRequest,
+  ResetPasswordRequest,
+  ChangePasswordRequest,
+  RefreshTokenRequest
 } from '../models';
 
 const TOKEN_KEY = 'auth_token';
+const REFRESH_TOKEN_KEY = 'refresh_token';
 const USER_KEY = 'auth_user';
 
 @Injectable({
@@ -23,115 +26,116 @@ export class AuthService {
   private readonly api = inject(ApiService);
   private readonly router = inject(Router);
 
-  private readonly _user = signal<AuthenticatedUser | null>(this.getStoredUser());
-  private readonly _token = signal<string | null>(this.getStoredToken());
-  private readonly _isLoading = signal(false);
+  private readonly _user = signal<AuthenticatedUser | null>(this.loadUser());
+  private readonly _token = signal<string | null>(this.loadToken());
 
   readonly user = this._user.asReadonly();
-  readonly currentUser = this._user.asReadonly();
   readonly token = this._token.asReadonly();
-  readonly isLoading = this._isLoading.asReadonly();
-  readonly isAuthenticated = computed(() => !!this._token());
-  readonly userFullName = computed(() => {
-    const u = this._user();
-    return u ? `${u.firstName} ${u.lastName}` : '';
-  });
+  readonly isAuthenticated = computed(() => !!this._token() && !!this._user());
+
+  private loadUser(): AuthenticatedUser | null {
+    const stored = localStorage.getItem(USER_KEY);
+    return stored ? JSON.parse(stored) : null;
+  }
+
+  private loadToken(): string | null {
+    return localStorage.getItem(TOKEN_KEY);
+  }
 
   login(request: LoginRequest): Observable<LoginResponse> {
-    this._isLoading.set(true);
-    return this.api.post<LoginResponse>('authentication/login', request).pipe(
+    return this.api.post<LoginResponse>('auth/login', request).pipe(
       tap(response => {
-        this.setSession(response);
-        this._isLoading.set(false);
-      }),
-      catchError(error => {
-        this._isLoading.set(false);
-        throw error;
+        if (!response.requiresMfa) {
+          this.setAuthData(response);
+        }
       })
     );
   }
 
-  logout(): Observable<boolean> {
-    return this.api.post<boolean>('authentication/logout', {}).pipe(
-      tap(() => this.clearSession()),
-      catchError(() => {
-        this.clearSession();
-        return of(true);
-      })
+  verifyMfa(request: VerifyMfaRequest): Observable<LoginResponse> {
+    return this.api.post<LoginResponse>('auth/verify-mfa', request).pipe(
+      tap(response => this.setAuthData(response))
     );
   }
 
-  requestPasswordReset(request: PasswordResetInitRequest): Observable<boolean> {
-    return this.api.post<boolean>('authentication/password-reset/request', request);
+  logout(): void {
+    this.api.post('auth/logout', {}).subscribe({
+      complete: () => this.clearAuth()
+    });
+    this.clearAuth();
   }
 
-  completePasswordReset(request: PasswordResetCompleteRequest): Observable<boolean> {
-    return this.api.post<boolean>('authentication/password-reset/complete', request);
+  refreshToken(): Observable<LoginResponse> {
+    const refreshToken = localStorage.getItem(REFRESH_TOKEN_KEY);
+    if (!refreshToken) {
+      this.clearAuth();
+      return of(null as unknown as LoginResponse);
+    }
+
+    const request: RefreshTokenRequest = { refreshToken };
+    return this.api.post<LoginResponse>('auth/refresh', request).pipe(
+      tap(response => this.setAuthData(response))
+    );
   }
 
-  enableMfa(request: EnableMfaRequest): Observable<{ secretKey: string; qrCode: string }> {
-    return this.api.post<{ secretKey: string; qrCode: string }>('authentication/mfa/enable', request);
+  forgotPassword(request: ForgotPasswordRequest): Observable<void> {
+    return this.api.post<void>('auth/forgot-password', request);
   }
 
-  verifyMfa(request: VerifyMfaRequest): Observable<boolean> {
-    return this.api.post<boolean>('authentication/mfa/verify', request);
+  resetPassword(request: ResetPasswordRequest): Observable<void> {
+    return this.api.post<void>('auth/reset-password', request);
   }
 
-  disableMfa(): Observable<boolean> {
-    return this.api.post<boolean>('authentication/mfa/disable', {});
+  changePassword(request: ChangePasswordRequest): Observable<void> {
+    return this.api.post<void>('auth/change-password', request);
   }
 
-  changePassword(currentPassword: string, newPassword: string): Observable<boolean> {
-    return this.api.post<boolean>('authentication/change-password', { currentPassword, newPassword });
+  enableMfa(): Observable<MfaSetup> {
+    return this.api.post<MfaSetup>('auth/enable-mfa', {});
+  }
+
+  disableMfa(): Observable<void> {
+    return this.api.post<void>('auth/disable-mfa', {});
   }
 
   getSessions(): Observable<UserSession[]> {
-    return this.api.get<UserSession[]>('authentication/sessions');
+    return this.api.get<UserSession[]>('auth/sessions');
   }
 
-  terminateSession(sessionId: string): Observable<boolean> {
-    return this.api.delete<boolean>(`authentication/sessions/${sessionId}`);
+  revokeSession(sessionId: string): Observable<void> {
+    return this.api.delete<void>(`auth/sessions/${sessionId}`);
   }
 
   hasPermission(permission: string): boolean {
     const user = this._user();
-    return user?.permissions?.includes(permission) ?? false;
-  }
-
-  hasRole(role: string): boolean {
-    const user = this._user();
-    return user?.roles?.includes(role) ?? false;
+    if (!user) return false;
+    return user.permissions.includes(permission) || user.permissions.includes('*:*');
   }
 
   hasAnyPermission(permissions: string[]): boolean {
     return permissions.some(p => this.hasPermission(p));
   }
 
-  hasAllPermissions(permissions: string[]): boolean {
-    return permissions.every(p => this.hasPermission(p));
+  hasRole(role: string): boolean {
+    const user = this._user();
+    if (!user) return false;
+    return user.roles.includes(role);
   }
 
-  private setSession(response: LoginResponse): void {
-    this._token.set(response.token);
-    this._user.set(response.user);
-    localStorage.setItem(TOKEN_KEY, response.token);
+  private setAuthData(response: LoginResponse): void {
+    localStorage.setItem(TOKEN_KEY, response.accessToken);
+    localStorage.setItem(REFRESH_TOKEN_KEY, response.refreshToken);
     localStorage.setItem(USER_KEY, JSON.stringify(response.user));
+    this._token.set(response.accessToken);
+    this._user.set(response.user);
   }
 
-  private clearSession(): void {
+  private clearAuth(): void {
+    localStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem(REFRESH_TOKEN_KEY);
+    localStorage.removeItem(USER_KEY);
     this._token.set(null);
     this._user.set(null);
-    localStorage.removeItem(TOKEN_KEY);
-    localStorage.removeItem(USER_KEY);
     this.router.navigate(['/login']);
-  }
-
-  private getStoredToken(): string | null {
-    return localStorage.getItem(TOKEN_KEY);
-  }
-
-  private getStoredUser(): AuthenticatedUser | null {
-    const userJson = localStorage.getItem(USER_KEY);
-    return userJson ? JSON.parse(userJson) : null;
   }
 }

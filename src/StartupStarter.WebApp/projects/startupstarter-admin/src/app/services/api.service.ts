@@ -11,7 +11,14 @@ export class ApiService {
   private readonly baseUrl = environment.apiBaseUrl;
 
   get<T>(endpoint: string, params?: Record<string, string | number | boolean>): Observable<T> {
-    const httpParams = this.buildParams(params);
+    let httpParams = new HttpParams();
+    if (params) {
+      Object.entries(params).forEach(([key, value]) => {
+        if (value !== null && value !== undefined) {
+          httpParams = httpParams.set(key, String(value));
+        }
+      });
+    }
     return this.http.get<T>(`${this.baseUrl}/${endpoint}`, { params: httpParams });
   }
 
@@ -31,19 +38,22 @@ export class ApiService {
     return this.http.delete<T>(`${this.baseUrl}/${endpoint}`);
   }
 
-  upload<T>(endpoint: string, formData: FormData): Observable<T> {
+  upload<T>(endpoint: string, file: File, additionalData?: Record<string, string>): Observable<T> {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    if (additionalData) {
+      Object.entries(additionalData).forEach(([key, value]) => {
+        formData.append(key, value);
+      });
+    }
+
     return this.http.post<T>(`${this.baseUrl}/${endpoint}`, formData);
   }
 
-  private buildParams(params?: Record<string, string | number | boolean>): HttpParams {
-    let httpParams = new HttpParams();
-    if (params) {
-      Object.keys(params).forEach(key => {
-        if (params[key] !== undefined && params[key] !== null) {
-          httpParams = httpParams.set(key, String(params[key]));
-        }
-      });
-    }
-    return httpParams;
+  download(endpoint: string): Observable<Blob> {
+    return this.http.get(`${this.baseUrl}/${endpoint}`, {
+      responseType: 'blob'
+    });
   }
 }

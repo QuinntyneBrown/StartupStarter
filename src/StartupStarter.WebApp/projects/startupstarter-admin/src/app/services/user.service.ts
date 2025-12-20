@@ -4,10 +4,10 @@ import { ApiService } from './api.service';
 import {
   User,
   UserInvitation,
-  CreateUserRequest,
+  InviteUserRequest,
   UpdateUserRequest,
-  SendInvitationRequest,
-  ActivationMethod
+  DeactivateUserRequest,
+  LockUserRequest
 } from '../models';
 
 @Injectable({
@@ -21,63 +21,51 @@ export class UserService {
     return this.api.get<User[]>(this.endpoint);
   }
 
-  getById(userId: string): Observable<User> {
-    return this.api.get<User>(`${this.endpoint}/${userId}`);
+  getById(id: string): Observable<User> {
+    return this.api.get<User>(`${this.endpoint}/${id}`);
   }
 
-  getByAccount(accountId: string): Observable<User[]> {
-    return this.api.get<User[]>(`${this.endpoint}/account/${accountId}`);
+  invite(request: InviteUserRequest): Observable<UserInvitation> {
+    return this.api.post<UserInvitation>(`${this.endpoint}/invite`, request);
   }
 
-  create(request: CreateUserRequest): Observable<User> {
-    return this.api.post<User>(this.endpoint, request);
+  update(id: string, request: UpdateUserRequest): Observable<User> {
+    return this.api.put<User>(`${this.endpoint}/${id}`, request);
   }
 
-  update(userId: string, request: UpdateUserRequest): Observable<User> {
-    return this.api.put<User>(`${this.endpoint}/${userId}`, request);
+  delete(id: string): Observable<void> {
+    return this.api.delete<void>(`${this.endpoint}/${id}`);
   }
 
-  delete(userId: string, deletionType: 'SoftDelete' | 'HardDelete' = 'SoftDelete'): Observable<boolean> {
-    return this.api.delete<boolean>(`${this.endpoint}/${userId}?deletionType=${deletionType}`);
+  activate(id: string): Observable<User> {
+    return this.api.post<User>(`${this.endpoint}/${id}/activate`, {});
   }
 
-  activate(userId: string, method: ActivationMethod = ActivationMethod.AdminActivation): Observable<boolean> {
-    return this.api.post<boolean>(`${this.endpoint}/${userId}/activate`, { method });
+  deactivate(id: string, request: DeactivateUserRequest): Observable<User> {
+    return this.api.post<User>(`${this.endpoint}/${id}/deactivate`, request);
   }
 
-  deactivate(userId: string, reason: string): Observable<boolean> {
-    return this.api.post<boolean>(`${this.endpoint}/${userId}/deactivate`, { reason });
+  lock(id: string, request: LockUserRequest): Observable<User> {
+    return this.api.post<User>(`${this.endpoint}/${id}/lock`, request);
   }
 
-  lock(userId: string, reason: string, duration?: number): Observable<boolean> {
-    return this.api.post<boolean>(`${this.endpoint}/${userId}/lock`, { reason, duration });
+  unlock(id: string): Observable<User> {
+    return this.api.post<User>(`${this.endpoint}/${id}/unlock`, {});
   }
 
-  unlock(userId: string): Observable<boolean> {
-    return this.api.post<boolean>(`${this.endpoint}/${userId}/unlock`, {});
+  getRoles(id: string): Observable<string[]> {
+    return this.api.get<string[]>(`${this.endpoint}/${id}/roles`);
   }
 
-  sendInvitation(request: SendInvitationRequest): Observable<UserInvitation> {
-    return this.api.post<UserInvitation>(`${this.endpoint}/invitations`, request);
+  getInvitations(): Observable<UserInvitation[]> {
+    return this.api.get<UserInvitation[]>('invitations');
   }
 
-  getInvitations(accountId: string): Observable<UserInvitation[]> {
-    return this.api.get<UserInvitation[]>(`${this.endpoint}/invitations/account/${accountId}`);
+  cancelInvitation(id: string): Observable<void> {
+    return this.api.delete<void>(`invitations/${id}`);
   }
 
-  resendInvitation(invitationId: string): Observable<boolean> {
-    return this.api.post<boolean>(`${this.endpoint}/invitations/${invitationId}/resend`, {});
-  }
-
-  cancelInvitation(invitationId: string): Observable<boolean> {
-    return this.api.delete<boolean>(`${this.endpoint}/invitations/${invitationId}`);
-  }
-
-  assignRole(userId: string, roleId: string): Observable<boolean> {
-    return this.api.post<boolean>(`${this.endpoint}/${userId}/roles/${roleId}`, {});
-  }
-
-  removeRole(userId: string, roleId: string): Observable<boolean> {
-    return this.api.delete<boolean>(`${this.endpoint}/${userId}/roles/${roleId}`);
+  resendInvitation(id: string): Observable<UserInvitation> {
+    return this.api.post<UserInvitation>(`invitations/${id}/resend`, {});
   }
 }

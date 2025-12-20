@@ -1,19 +1,35 @@
+export enum ContentStatus {
+  Draft = 'Draft',
+  Review = 'Review',
+  Approved = 'Approved',
+  Published = 'Published',
+  Archived = 'Archived'
+}
+
+export enum ContentType {
+  Article = 'Article',
+  Page = 'Page',
+  BlogPost = 'BlogPost',
+  News = 'News',
+  Documentation = 'Documentation'
+}
+
 export interface Content {
   contentId: string;
-  contentType: string;
   title: string;
   body: string;
-  authorId: string;
+  contentType: ContentType;
   accountId: string;
-  profileId: string;
+  profileId?: string;
+  authorId: string;
+  authorName?: string;
   status: ContentStatus;
+  currentVersion: number;
+  publishedAt?: Date;
+  scheduledPublishDate?: Date;
   createdAt: Date;
   updatedAt?: Date;
-  publishedAt?: Date;
-  unpublishedAt?: Date;
-  scheduledPublishDate?: Date;
-  currentVersion: number;
-  versions: ContentVersion[];
+  deletedAt?: Date;
 }
 
 export interface ContentVersion {
@@ -23,26 +39,16 @@ export interface ContentVersion {
   title: string;
   body: string;
   createdBy: string;
-  changeDescription: string;
+  createdByName?: string;
+  changeDescription?: string;
   createdAt: Date;
 }
 
-export enum ContentStatus {
-  Draft = 'Draft',
-  Review = 'Review',
-  Approved = 'Approved',
-  Published = 'Published',
-  Unpublished = 'Unpublished',
-  Archived = 'Archived',
-  Deleted = 'Deleted'
-}
-
 export interface CreateContentRequest {
-  contentType: string;
   title: string;
   body: string;
-  accountId: string;
-  profileId: string;
+  contentType: ContentType;
+  profileId?: string;
 }
 
 export interface UpdateContentRequest {
@@ -52,9 +58,9 @@ export interface UpdateContentRequest {
 }
 
 export interface PublishContentRequest {
-  publishDate?: Date;
+  scheduledDate?: Date;
 }
 
-export interface ScheduleContentRequest {
-  scheduledPublishDate: Date;
+export interface UnpublishContentRequest {
+  reason: string;
 }

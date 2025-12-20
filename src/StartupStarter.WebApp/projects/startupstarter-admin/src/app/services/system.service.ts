@@ -5,9 +5,10 @@ import {
   SystemMaintenance,
   SystemBackup,
   SystemError,
-  SystemConfig,
+  SystemHealth,
+  SystemMetrics,
   ScheduleMaintenanceRequest,
-  StartBackupRequest
+  ResolveErrorRequest
 } from '../models';
 
 @Injectable({
@@ -17,92 +18,67 @@ export class SystemService {
   private readonly api = inject(ApiService);
   private readonly endpoint = 'system';
 
-  // Maintenance operations
-  getMaintenanceSchedule(): Observable<SystemMaintenance[]> {
+  // Maintenance
+  getMaintenances(): Observable<SystemMaintenance[]> {
     return this.api.get<SystemMaintenance[]>(`${this.endpoint}/maintenance`);
   }
 
-  getMaintenanceById(maintenanceId: string): Observable<SystemMaintenance> {
-    return this.api.get<SystemMaintenance>(`${this.endpoint}/maintenance/${maintenanceId}`);
+  getMaintenance(id: string): Observable<SystemMaintenance> {
+    return this.api.get<SystemMaintenance>(`${this.endpoint}/maintenance/${id}`);
   }
 
   scheduleMaintenance(request: ScheduleMaintenanceRequest): Observable<SystemMaintenance> {
     return this.api.post<SystemMaintenance>(`${this.endpoint}/maintenance`, request);
   }
 
-  startMaintenance(maintenanceId: string): Observable<boolean> {
-    return this.api.post<boolean>(`${this.endpoint}/maintenance/${maintenanceId}/start`, {});
+  startMaintenance(id: string): Observable<SystemMaintenance> {
+    return this.api.put<SystemMaintenance>(`${this.endpoint}/maintenance/${id}/start`, {});
   }
 
-  completeMaintenance(maintenanceId: string): Observable<boolean> {
-    return this.api.post<boolean>(`${this.endpoint}/maintenance/${maintenanceId}/complete`, {});
+  completeMaintenance(id: string): Observable<SystemMaintenance> {
+    return this.api.put<SystemMaintenance>(`${this.endpoint}/maintenance/${id}/complete`, {});
   }
 
-  cancelMaintenance(maintenanceId: string): Observable<boolean> {
-    return this.api.delete<boolean>(`${this.endpoint}/maintenance/${maintenanceId}`);
+  cancelMaintenance(id: string): Observable<SystemMaintenance> {
+    return this.api.put<SystemMaintenance>(`${this.endpoint}/maintenance/${id}/cancel`, {});
   }
 
-  // Backup operations
+  // Backups
   getBackups(): Observable<SystemBackup[]> {
     return this.api.get<SystemBackup[]>(`${this.endpoint}/backups`);
   }
 
-  getBackupById(backupId: string): Observable<SystemBackup> {
-    return this.api.get<SystemBackup>(`${this.endpoint}/backups/${backupId}`);
+  getBackup(id: string): Observable<SystemBackup> {
+    return this.api.get<SystemBackup>(`${this.endpoint}/backups/${id}`);
   }
 
-  startBackup(request: StartBackupRequest): Observable<SystemBackup> {
-    return this.api.post<SystemBackup>(`${this.endpoint}/backups`, request);
+  triggerBackup(): Observable<SystemBackup> {
+    return this.api.post<SystemBackup>(`${this.endpoint}/backup`, {});
   }
 
-  restoreBackup(backupId: string): Observable<boolean> {
-    return this.api.post<boolean>(`${this.endpoint}/backups/${backupId}/restore`, {});
+  restoreBackup(id: string): Observable<void> {
+    return this.api.post<void>(`${this.endpoint}/backups/${id}/restore`, {});
   }
 
-  deleteBackup(backupId: string): Observable<boolean> {
-    return this.api.delete<boolean>(`${this.endpoint}/backups/${backupId}`);
+  // Errors
+  getErrors(): Observable<SystemError[]> {
+    return this.api.get<SystemError[]>(`${this.endpoint}/errors`);
   }
 
-  // Error tracking
-  getErrors(severity?: string, startDate?: Date, endDate?: Date): Observable<SystemError[]> {
-    const params: Record<string, string> = {};
-    if (severity) params['severity'] = severity;
-    if (startDate) params['startDate'] = startDate.toISOString();
-    if (endDate) params['endDate'] = endDate.toISOString();
-    return this.api.get<SystemError[]>(`${this.endpoint}/errors`, params);
+  getError(id: string): Observable<SystemError> {
+    return this.api.get<SystemError>(`${this.endpoint}/errors/${id}`);
   }
 
-  getErrorById(errorId: string): Observable<SystemError> {
-    return this.api.get<SystemError>(`${this.endpoint}/errors/${errorId}`);
+  resolveError(id: string, request: ResolveErrorRequest): Observable<SystemError> {
+    return this.api.put<SystemError>(`${this.endpoint}/errors/${id}/resolve`, request);
   }
 
-  resolveError(errorId: string): Observable<boolean> {
-    return this.api.post<boolean>(`${this.endpoint}/errors/${errorId}/resolve`, {});
+  // Health & Metrics
+  getHealth(): Observable<SystemHealth> {
+    return this.api.get<SystemHealth>(`${this.endpoint}/health`);
   }
 
-  // System health
-  getHealth(): Observable<{ status: string; services: Record<string, string> }> {
-    return this.api.get<{ status: string; services: Record<string, string> }>(`${this.endpoint}/health`);
-  }
-
-  getMetrics(): Observable<Record<string, number>> {
-    return this.api.get<Record<string, number>>(`${this.endpoint}/metrics`);
-  }
-
-  // Settings operations
-  getSettings(): Observable<SystemConfig> {
-    return this.api.get<SystemConfig>(`${this.endpoint}/settings`);
-  }
-
-  updateSettings(settings: Partial<SystemConfig>): Observable<SystemConfig> {
-    return this.api.put<SystemConfig>(`${this.endpoint}/settings`, settings);
-  }
-
-  setMaintenanceMode(enabled: boolean): Observable<boolean> {
-    return this.api.post<boolean>(`${this.endpoint}/maintenance-mode`, { enabled });
-  }
-
-  clearCache(): Observable<boolean> {
-    return this.api.post<boolean>(`${this.endpoint}/cache/clear`, {});
+  getMetrics(): Observable<SystemMetrics> {
+    return this.api.get<SystemMetrics>(`${this.endpoint}/metrics`);
   }
 }
