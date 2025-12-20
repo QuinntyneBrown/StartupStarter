@@ -98,7 +98,7 @@ interface NavItem {
       margin: 0;
       font-size: 20px;
       font-weight: 500;
-      color: #3f51b5;
+      color: #1976d2;
     }
 
     .sidenav-content {
@@ -110,6 +110,12 @@ interface NavItem {
       position: sticky;
       top: 0;
       z-index: 100;
+      background: linear-gradient(135deg, #1976d2 0%, #1565c0 100%);
+      color: white;
+    }
+
+    .toolbar button {
+      color: white;
     }
 
     .toolbar-spacer {
