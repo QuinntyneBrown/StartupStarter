@@ -40,6 +40,8 @@
     "@angular/build": "^21.0.4",
     "@angular/cli": "^21.0.4",
     "@angular/compiler-cli": "^21.0.0",
+    "@playwright/test": "^1.57.0",
+    "puppeteer-core": "^24.34.0",
     "typescript": "~5.9.2"
   }
 }

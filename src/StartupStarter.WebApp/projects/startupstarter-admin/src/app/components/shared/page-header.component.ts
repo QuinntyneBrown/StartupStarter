@@ -24,11 +24,19 @@ import { MatIconModule } from '@angular/material/icon';
     </div>
   `,
   styles: [`
+    :host {
+      display: block;
+      margin: -24px -24px 24px -24px;
+    }
+
     .page-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 24px;
+      padding: 24px 32px;
+      background: linear-gradient(135deg, #1976d2 0%, #1565c0 100%);
+      color: white;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
       flex-wrap: wrap;
       gap: 16px;
     }
@@ -40,10 +48,11 @@ import { MatIconModule } from '@angular/material/icon';
     }
 
     .page-icon {
-      font-size: 32px;
-      width: 32px;
-      height: 32px;
-      color: var(--mat-primary-color, #3f51b5);
+      font-size: 36px;
+      width: 36px;
+      height: 36px;
+      color: white;
+      opacity: 0.9;
     }
 
     .page-title-container {
@@ -53,21 +62,32 @@ import { MatIconModule } from '@angular/material/icon';
 
     .page-title {
       margin: 0;
-      font-size: 24px;
+      font-size: 28px;
       font-weight: 500;
-      color: rgba(0, 0, 0, 0.87);
+      color: white;
     }
 
     .page-subtitle {
       margin: 4px 0 0 0;
       font-size: 14px;
-      color: rgba(0, 0, 0, 0.6);
+      color: white;
+      opacity: 0.9;
     }
 
     .page-actions {
       display: flex;
       gap: 8px;
       flex-wrap: wrap;
+    }
+
+    .page-actions ::ng-deep button.mat-mdc-unelevated-button {
+      background-color: white !important;
+      color: #1976d2 !important;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .page-actions ::ng-deep button.mat-mdc-unelevated-button:hover {
+      background-color: #f5f5f5 !important;
     }
   `]
 })
