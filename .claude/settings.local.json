@@ -22,7 +22,8 @@
       "Bash(findstr:*)",
       "Bash(dotnet ef migrations:*)",
       "Bash(taskkill //F //PID 21712)",
-      "Bash(ng serve:*)"
+      "Bash(ng serve:*)",
+      "Bash(npm run storybook:*)"
     ],
     "deny": [],
     "ask": []
