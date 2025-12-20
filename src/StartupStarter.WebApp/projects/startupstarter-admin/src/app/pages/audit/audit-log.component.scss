@@ -1,0 +1,17 @@
+.audit-log__filters-card {
+  margin-bottom: 16px;
+}
+
+.audit-log__filters {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.audit-log__filters mat-form-field {
+  min-width: 150px;
+}
+
+.audit-log__table {
+  width: 100%;
+}

@@ -1,0 +1,66 @@
+<app-page-header title="Webhooks" subtitle="Manage webhook integrations" icon="webhook">
+  <button mat-flat-button color="primary" (click)="create()">
+    <mat-icon>add</mat-icon>
+    New Webhook
+  </button>
+</app-page-header>
+
+<mat-card>
+  <mat-card-content>
+    @if (isLoading()) {
+      <app-loading-spinner message="Loading webhooks..."></app-loading-spinner>
+    } @else if (webhooks().length === 0) {
+      <app-empty-state icon="webhook" title="No webhooks" message="Create a webhook to receive event notifications" actionLabel="Create Webhook" (action)="create()"></app-empty-state>
+    } @else {
+      <table mat-table [dataSource]="webhooks()" class="full-width">
+        <ng-container matColumnDef="url">
+          <th mat-header-cell *matHeaderCellDef>URL</th>
+          <td mat-cell *matCellDef="let webhook">{{ webhook.url }}</td>
+        </ng-container>
+        <ng-container matColumnDef="events">
+          <th mat-header-cell *matHeaderCellDef>Events</th>
+          <td mat-cell *matCellDef="let webhook">
+            <mat-chip-set>
+              @for (event of webhook.events.slice(0, 2); track event) {
+                <mat-chip>{{ event }}</mat-chip>
+              }
+              @if (webhook.events.length > 2) {
+                <mat-chip>+{{ webhook.events.length - 2 }}</mat-chip>
+              }
+            </mat-chip-set>
+          </td>
+        </ng-container>
+        <ng-container matColumnDef="status">
+          <th mat-header-cell *matHeaderCellDef>Status</th>
+          <td mat-cell *matCellDef="let webhook">
+            <app-status-badge [label]="webhook.isActive ? 'Active' : 'Disabled'" [type]="webhook.isActive ? 'success' : 'neutral'"></app-status-badge>
+          </td>
+        </ng-container>
+        <ng-container matColumnDef="failures">
+          <th mat-header-cell *matHeaderCellDef>Failures</th>
+          <td mat-cell *matCellDef="let webhook">
+            <app-status-badge [label]="webhook.failureCount.toString()" [type]="webhook.failureCount > 5 ? 'error' : webhook.failureCount > 0 ? 'warning' : 'success'"></app-status-badge>
+          </td>
+        </ng-container>
+        <ng-container matColumnDef="actions">
+          <th mat-header-cell *matHeaderCellDef></th>
+          <td mat-cell *matCellDef="let webhook">
+            <button mat-icon-button [matMenuTriggerFor]="menu"><mat-icon>more_vert</mat-icon></button>
+            <mat-menu #menu="matMenu">
+              <button mat-menu-item (click)="edit(webhook)"><mat-icon>edit</mat-icon><span>Edit</span></button>
+              <button mat-menu-item (click)="test(webhook)"><mat-icon>send</mat-icon><span>Test</span></button>
+              @if (webhook.isActive) {
+                <button mat-menu-item (click)="disable(webhook)"><mat-icon>pause</mat-icon><span>Disable</span></button>
+              } @else {
+                <button mat-menu-item (click)="enable(webhook)"><mat-icon>play_arrow</mat-icon><span>Enable</span></button>
+              }
+              <button mat-menu-item (click)="delete(webhook)"><mat-icon color="warn">delete</mat-icon><span>Delete</span></button>
+            </mat-menu>
+          </td>
+        </ng-container>
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+      </table>
+    }
+  </mat-card-content>
+</mat-card>

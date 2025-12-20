@@ -1,0 +1,48 @@
+<app-page-header title="Media" subtitle="Manage media files" icon="perm_media">
+  <button mat-flat-button color="primary" (click)="fileInput.click()">
+    <mat-icon>cloud_upload</mat-icon>
+    Upload
+  </button>
+  <input #fileInput type="file" hidden (change)="onFileSelected($event)" multiple accept="image/*,video/*,.pdf">
+</app-page-header>
+
+<mat-card>
+  <mat-card-content>
+    <mat-form-field appearance="outline" class="media-list__search-field">
+      <mat-label>Search media</mat-label>
+      <input matInput [(ngModel)]="searchQuery" placeholder="Search by filename...">
+      <mat-icon matSuffix>search</mat-icon>
+    </mat-form-field>
+
+    @if (isLoading()) {
+      <app-loading-spinner message="Loading media..."></app-loading-spinner>
+    } @else if (filtered().length === 0) {
+      <app-empty-state icon="perm_media" title="No media found" message="Upload your first file" actionLabel="Upload" (action)="fileInput.click()"></app-empty-state>
+    } @else {
+      <div class="media-list__grid">
+        @for (media of filtered(); track media.mediaId) {
+          <mat-card class="media-list__card">
+            <div class="media-list__preview" [class.media-list__preview--image]="media.fileType === 'Image'">
+              @if (media.thumbnailUrl) {
+                <img [src]="media.thumbnailUrl" [alt]="media.fileName">
+              } @else {
+                <mat-icon>{{ getMediaIcon(media.fileType) }}</mat-icon>
+              }
+            </div>
+            <mat-card-content>
+              <p class="media-list__name">{{ media.fileName }}</p>
+              <p class="media-list__info">{{ formatFileSize(media.fileSize) }}</p>
+            </mat-card-content>
+            <mat-card-actions>
+              <button mat-icon-button (click)="download(media)"><mat-icon>download</mat-icon></button>
+              <button mat-icon-button [matMenuTriggerFor]="menu"><mat-icon>more_vert</mat-icon></button>
+              <mat-menu #menu="matMenu">
+                <button mat-menu-item (click)="delete(media)"><mat-icon color="warn">delete</mat-icon><span>Delete</span></button>
+              </mat-menu>
+            </mat-card-actions>
+          </mat-card>
+        }
+      </div>
+    }
+  </mat-card-content>
+</mat-card>

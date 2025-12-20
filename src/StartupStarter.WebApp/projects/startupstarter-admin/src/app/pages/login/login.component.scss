@@ -1,0 +1,56 @@
+.login {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 24px;
+}
+
+.login__card {
+  width: 100%;
+  max-width: 400px;
+  padding: 24px;
+}
+
+mat-card-header {
+  margin-bottom: 24px;
+}
+
+mat-card-title {
+  font-size: 24px !important;
+  margin-bottom: 8px;
+}
+
+.login__field {
+  width: 100%;
+}
+
+.login__submit-btn {
+  width: 100%;
+  margin-top: 16px;
+  height: 48px;
+}
+
+.login__back-btn {
+  width: 100%;
+}
+
+.login__error-message {
+  background-color: #ffebee;
+  color: #c62828;
+  padding: 12px;
+  border-radius: 4px;
+  margin-bottom: 16px;
+  font-size: 14px;
+}
+
+.login__mfa-message {
+  color: rgba(0, 0, 0, 0.6);
+  margin-bottom: 16px;
+  text-align: center;
+}
+
+mat-spinner {
+  display: inline-block;
+}

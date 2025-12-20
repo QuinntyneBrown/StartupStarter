@@ -24,7 +24,7 @@ export const routes: Routes = [
   {
     path: '',
     canActivate: [authGuard],
-    loadComponent: () => import('./components/layout/admin-layout.component').then(m => m.AdminLayoutComponent),
+    loadComponent: () => import('./components/layout/admin-layout/admin-layout.component').then(m => m.AdminLayoutComponent),
     children: [
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
       {
@@ -36,85 +36,85 @@ export const routes: Routes = [
       {
         path: 'accounts',
         canActivate: [permissionGuard(['account:read'])],
-        loadComponent: () => import('./pages/accounts/account-list.component').then(m => m.AccountListComponent)
+        loadComponent: () => import('./pages/accounts/account-list/account-list.component').then(m => m.AccountListComponent)
       },
       {
         path: 'accounts/new',
         canActivate: [permissionGuard(['account:write'])],
-        loadComponent: () => import('./pages/accounts/account-form.component').then(m => m.AccountFormComponent)
+        loadComponent: () => import('./pages/accounts/account-form/account-form.component').then(m => m.AccountFormComponent)
       },
       {
         path: 'accounts/:id',
         canActivate: [permissionGuard(['account:write'])],
-        loadComponent: () => import('./pages/accounts/account-form.component').then(m => m.AccountFormComponent)
+        loadComponent: () => import('./pages/accounts/account-form/account-form.component').then(m => m.AccountFormComponent)
       },
 
       // User Management
       {
         path: 'users',
         canActivate: [permissionGuard(['user:read'])],
-        loadComponent: () => import('./pages/users/user-list.component').then(m => m.UserListComponent)
+        loadComponent: () => import('./pages/users/user-list/user-list.component').then(m => m.UserListComponent)
       },
       {
         path: 'users/invite',
         canActivate: [permissionGuard(['user:create'])],
-        loadComponent: () => import('./pages/users/user-form.component').then(m => m.UserFormComponent)
+        loadComponent: () => import('./pages/users/user-form/user-form.component').then(m => m.UserFormComponent)
       },
       {
         path: 'users/:id',
         canActivate: [permissionGuard(['user:write'])],
-        loadComponent: () => import('./pages/users/user-form.component').then(m => m.UserFormComponent)
+        loadComponent: () => import('./pages/users/user-form/user-form.component').then(m => m.UserFormComponent)
       },
 
       // Role Management
       {
         path: 'roles',
         canActivate: [permissionGuard(['role:read'])],
-        loadComponent: () => import('./pages/roles/role-list.component').then(m => m.RoleListComponent)
+        loadComponent: () => import('./pages/roles/role-list/role-list.component').then(m => m.RoleListComponent)
       },
       {
         path: 'roles/new',
         canActivate: [permissionGuard(['role:create'])],
-        loadComponent: () => import('./pages/roles/role-form.component').then(m => m.RoleFormComponent)
+        loadComponent: () => import('./pages/roles/role-form/role-form.component').then(m => m.RoleFormComponent)
       },
       {
         path: 'roles/:id',
         canActivate: [permissionGuard(['role:write'])],
-        loadComponent: () => import('./pages/roles/role-form.component').then(m => m.RoleFormComponent)
+        loadComponent: () => import('./pages/roles/role-form/role-form.component').then(m => m.RoleFormComponent)
       },
 
       // Profile Management
       {
         path: 'profiles',
         canActivate: [permissionGuard(['profile:read'])],
-        loadComponent: () => import('./pages/profiles/profile-list.component').then(m => m.ProfileListComponent)
+        loadComponent: () => import('./pages/profiles/profile-list/profile-list.component').then(m => m.ProfileListComponent)
       },
       {
         path: 'profiles/new',
         canActivate: [permissionGuard(['profile:create'])],
-        loadComponent: () => import('./pages/profiles/profile-form.component').then(m => m.ProfileFormComponent)
+        loadComponent: () => import('./pages/profiles/profile-form/profile-form.component').then(m => m.ProfileFormComponent)
       },
       {
         path: 'profiles/:id',
         canActivate: [permissionGuard(['profile:write'])],
-        loadComponent: () => import('./pages/profiles/profile-form.component').then(m => m.ProfileFormComponent)
+        loadComponent: () => import('./pages/profiles/profile-form/profile-form.component').then(m => m.ProfileFormComponent)
       },
 
       // Content Management
       {
         path: 'content',
         canActivate: [permissionGuard(['content:read'])],
-        loadComponent: () => import('./pages/content/content-list.component').then(m => m.ContentListComponent)
+        loadComponent: () => import('./pages/content/content-list/content-list.component').then(m => m.ContentListComponent)
       },
       {
         path: 'content/new',
         canActivate: [permissionGuard(['content:create'])],
-        loadComponent: () => import('./pages/content/content-form.component').then(m => m.ContentFormComponent)
+        loadComponent: () => import('./pages/content/content-form/content-form.component').then(m => m.ContentFormComponent)
       },
       {
         path: 'content/:id',
         canActivate: [permissionGuard(['content:write'])],
-        loadComponent: () => import('./pages/content/content-form.component').then(m => m.ContentFormComponent)
+        loadComponent: () => import('./pages/content/content-form/content-form.component').then(m => m.ContentFormComponent)
       },
 
       // Media Management
@@ -135,24 +135,24 @@ export const routes: Routes = [
       {
         path: 'api-keys',
         canActivate: [permissionGuard(['apikey:read'])],
-        loadComponent: () => import('./pages/api-keys/api-key-list.component').then(m => m.ApiKeyListComponent)
+        loadComponent: () => import('./pages/api-keys/api-key-list/api-key-list.component').then(m => m.ApiKeyListComponent)
       },
 
       // Webhook Management
       {
         path: 'webhooks',
         canActivate: [permissionGuard(['webhook:read'])],
-        loadComponent: () => import('./pages/webhooks/webhook-list.component').then(m => m.WebhookListComponent)
+        loadComponent: () => import('./pages/webhooks/webhook-list/webhook-list.component').then(m => m.WebhookListComponent)
       },
       {
         path: 'webhooks/new',
         canActivate: [permissionGuard(['webhook:create'])],
-        loadComponent: () => import('./pages/webhooks/webhook-form.component').then(m => m.WebhookFormComponent)
+        loadComponent: () => import('./pages/webhooks/webhook-form/webhook-form.component').then(m => m.WebhookFormComponent)
       },
       {
         path: 'webhooks/:id',
         canActivate: [permissionGuard(['webhook:write'])],
-        loadComponent: () => import('./pages/webhooks/webhook-form.component').then(m => m.WebhookFormComponent)
+        loadComponent: () => import('./pages/webhooks/webhook-form/webhook-form.component').then(m => m.WebhookFormComponent)
       },
 
       // Audit Logs
