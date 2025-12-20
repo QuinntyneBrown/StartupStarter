@@ -1,0 +1,63 @@
+<app-page-header
+  [title]="isEditMode() ? 'Edit Account' : 'New Account'"
+  [subtitle]="isEditMode() ? 'Update account details' : 'Create a new tenant account'"
+  icon="business">
+</app-page-header>
+
+@if (isLoading()) {
+  <app-loading-spinner></app-loading-spinner>
+} @else {
+  <mat-card>
+    <mat-card-content>
+      <form [formGroup]="form" (ngSubmit)="onSubmit()">
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Account Name</mat-label>
+          <input matInput formControlName="accountName" placeholder="Enter account name">
+          @if (form.get('accountName')?.hasError('required')) {
+            <mat-error>Account name is required</mat-error>
+          }
+        </mat-form-field>
+
+        @if (!isEditMode()) {
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Account Type</mat-label>
+            <mat-select formControlName="accountType">
+              @for (type of accountTypes; track type) {
+                <mat-option [value]="type">{{ type }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Owner User ID</mat-label>
+            <input matInput formControlName="ownerUserId" placeholder="Enter owner user ID">
+            @if (form.get('ownerUserId')?.hasError('required')) {
+              <mat-error>Owner user ID is required</mat-error>
+            }
+          </mat-form-field>
+        }
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Subscription Tier</mat-label>
+          <mat-select formControlName="subscriptionTier">
+            <mat-option value="Free">Free</mat-option>
+            <mat-option value="Basic">Basic</mat-option>
+            <mat-option value="Professional">Professional</mat-option>
+            <mat-option value="Enterprise">Enterprise</mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <div class="form-actions">
+          <button mat-button type="button" (click)="cancel()">Cancel</button>
+          <button mat-flat-button color="primary" type="submit" [disabled]="isSaving() || form.invalid">
+            @if (isSaving()) {
+              Saving...
+            } @else {
+              {{ isEditMode() ? 'Update' : 'Create' }}
+            }
+          </button>
+        </div>
+      </form>
+    </mat-card-content>
+  </mat-card>
+}

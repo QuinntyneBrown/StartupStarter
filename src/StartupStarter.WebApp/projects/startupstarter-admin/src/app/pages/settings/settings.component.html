@@ -1,0 +1,75 @@
+<app-page-header title="Settings" subtitle="Manage your account settings" icon="settings"></app-page-header>
+
+<div class="settings__grid">
+  <mat-card>
+    <mat-card-header><mat-card-title>Profile</mat-card-title></mat-card-header>
+    <mat-card-content>
+      <form [formGroup]="profileForm" (ngSubmit)="saveProfile()">
+        <mat-form-field appearance="outline" class="settings__field">
+          <mat-label>First Name</mat-label>
+          <input matInput formControlName="firstName">
+        </mat-form-field>
+        <mat-form-field appearance="outline" class="settings__field">
+          <mat-label>Last Name</mat-label>
+          <input matInput formControlName="lastName">
+        </mat-form-field>
+        <mat-form-field appearance="outline" class="settings__field">
+          <mat-label>Email</mat-label>
+          <input matInput formControlName="email" readonly>
+        </mat-form-field>
+        <button mat-flat-button color="primary" type="submit" [disabled]="profileForm.invalid">Save Changes</button>
+      </form>
+    </mat-card-content>
+  </mat-card>
+
+  <mat-card>
+    <mat-card-header><mat-card-title>Security</mat-card-title></mat-card-header>
+    <mat-card-content>
+      <div class="settings__security-item">
+        <div>
+          <strong>Two-Factor Authentication</strong>
+          <p>Add an extra layer of security to your account</p>
+        </div>
+        <mat-slide-toggle [checked]="mfaEnabled()" (change)="toggleMfa($event.checked)"></mat-slide-toggle>
+      </div>
+      <mat-divider></mat-divider>
+      <h4>Change Password</h4>
+      <form [formGroup]="passwordForm" (ngSubmit)="changePassword()">
+        <mat-form-field appearance="outline" class="settings__field">
+          <mat-label>Current Password</mat-label>
+          <input matInput type="password" formControlName="currentPassword">
+        </mat-form-field>
+        <mat-form-field appearance="outline" class="settings__field">
+          <mat-label>New Password</mat-label>
+          <input matInput type="password" formControlName="newPassword">
+        </mat-form-field>
+        <mat-form-field appearance="outline" class="settings__field">
+          <mat-label>Confirm Password</mat-label>
+          <input matInput type="password" formControlName="confirmPassword">
+        </mat-form-field>
+        <button mat-flat-button color="primary" type="submit" [disabled]="passwordForm.invalid">Change Password</button>
+      </form>
+    </mat-card-content>
+  </mat-card>
+
+  <mat-card>
+    <mat-card-header><mat-card-title>Active Sessions</mat-card-title></mat-card-header>
+    <mat-card-content>
+      @if (sessions().length === 0) {
+        <p>No active sessions</p>
+      } @else {
+        @for (session of sessions(); track session.sessionId) {
+          <div class="settings__session-item">
+            <div>
+              <strong>{{ session.userAgent }}</strong>
+              <p>{{ session.ipAddress }} - {{ session.createdAt | date:'short' }}</p>
+            </div>
+            <button mat-icon-button color="warn" (click)="revokeSession(session.sessionId)">
+              <mat-icon>logout</mat-icon>
+            </button>
+          </div>
+        }
+      }
+    </mat-card-content>
+  </mat-card>
+</div>

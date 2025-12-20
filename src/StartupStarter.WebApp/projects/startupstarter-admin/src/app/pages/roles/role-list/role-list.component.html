@@ -1,0 +1,72 @@
+<app-page-header title="Roles" subtitle="Manage roles and permissions" icon="admin_panel_settings">
+  <button mat-flat-button color="primary" (click)="create()">
+    <mat-icon>add</mat-icon>
+    New Role
+  </button>
+</app-page-header>
+
+<mat-card>
+  <mat-card-content>
+    <mat-form-field appearance="outline" class="search-field">
+      <mat-label>Search roles</mat-label>
+      <input matInput [(ngModel)]="searchQuery" placeholder="Search by name...">
+      <mat-icon matSuffix>search</mat-icon>
+    </mat-form-field>
+
+    @if (isLoading()) {
+      <app-loading-spinner message="Loading roles..."></app-loading-spinner>
+    } @else if (filtered().length === 0) {
+      <app-empty-state
+        icon="admin_panel_settings"
+        title="No roles found"
+        message="Create roles to manage user permissions"
+        actionLabel="Create Role"
+        (action)="create()">
+      </app-empty-state>
+    } @else {
+      <table mat-table [dataSource]="filtered()" class="full-width">
+        <ng-container matColumnDef="name">
+          <th mat-header-cell *matHeaderCellDef>Role Name</th>
+          <td mat-cell *matCellDef="let role">
+            {{ role.roleName }}
+            @if (role.isSystemRole) {
+              <mat-chip class="system-chip">System</mat-chip>
+            }
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="description">
+          <th mat-header-cell *matHeaderCellDef>Description</th>
+          <td mat-cell *matCellDef="let role">{{ role.description }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="permissions">
+          <th mat-header-cell *matHeaderCellDef>Permissions</th>
+          <td mat-cell *matCellDef="let role">{{ role.permissions.length }} permissions</td>
+        </ng-container>
+
+        <ng-container matColumnDef="actions">
+          <th mat-header-cell *matHeaderCellDef></th>
+          <td mat-cell *matCellDef="let role">
+            <button mat-icon-button [matMenuTriggerFor]="menu" [disabled]="role.isSystemRole">
+              <mat-icon>more_vert</mat-icon>
+            </button>
+            <mat-menu #menu="matMenu">
+              <button mat-menu-item (click)="edit(role)">
+                <mat-icon>edit</mat-icon>
+                <span>Edit</span>
+              </button>
+              <button mat-menu-item (click)="delete(role)">
+                <mat-icon color="warn">delete</mat-icon>
+                <span>Delete</span>
+              </button>
+            </mat-menu>
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+      </table>
+    }
+  </mat-card-content>
+</mat-card>

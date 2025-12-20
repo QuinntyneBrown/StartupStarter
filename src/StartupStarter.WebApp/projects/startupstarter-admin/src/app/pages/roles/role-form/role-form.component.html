@@ -1,0 +1,54 @@
+<app-page-header
+  [title]="isEditMode() ? 'Edit Role' : 'New Role'"
+  [subtitle]="isEditMode() ? 'Update role permissions' : 'Create a new role with permissions'"
+  icon="admin_panel_settings">
+</app-page-header>
+
+@if (isLoading()) {
+  <app-loading-spinner></app-loading-spinner>
+} @else {
+  <mat-card>
+    <mat-card-content>
+      <form [formGroup]="form" (ngSubmit)="onSubmit()">
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Role Name</mat-label>
+          <input matInput formControlName="roleName">
+          @if (form.get('roleName')?.hasError('required')) {
+            <mat-error>Role name is required</mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Description</mat-label>
+          <textarea matInput formControlName="description" rows="3"></textarea>
+        </mat-form-field>
+
+        <h3>Permissions</h3>
+        <mat-accordion>
+          @for (group of permissionGroups; track group.name) {
+            <mat-expansion-panel>
+              <mat-expansion-panel-header>
+                <mat-panel-title>{{ group.name }}</mat-panel-title>
+                <mat-panel-description>{{ getSelectedCount(group.permissions) }} / {{ group.permissions.length }}</mat-panel-description>
+              </mat-expansion-panel-header>
+              <div class="permissions-grid">
+                @for (perm of group.permissions; track perm) {
+                  <mat-checkbox [checked]="selectedPermissions.has(perm)" (change)="togglePermission(perm)">
+                    {{ formatPermission(perm) }}
+                  </mat-checkbox>
+                }
+              </div>
+            </mat-expansion-panel>
+          }
+        </mat-accordion>
+
+        <div class="form-actions">
+          <button mat-button type="button" (click)="cancel()">Cancel</button>
+          <button mat-flat-button color="primary" type="submit" [disabled]="isSaving() || form.invalid">
+            {{ isSaving() ? 'Saving...' : (isEditMode() ? 'Update' : 'Create') }}
+          </button>
+        </div>
+      </form>
+    </mat-card-content>
+  </mat-card>
+}

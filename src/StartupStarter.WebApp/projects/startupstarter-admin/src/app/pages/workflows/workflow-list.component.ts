@@ -17,59 +17,8 @@ import { Workflow, WorkflowStatus } from '../../models';
     MatCardModule, MatTableModule, MatButtonModule, MatIconModule, MatMenuModule, MatTabsModule,
     PageHeaderComponent, LoadingSpinnerComponent, EmptyStateComponent, StatusBadgeComponent
   ],
-  template: `
-    <app-page-header title="Workflows" subtitle="Manage approval workflows" icon="account_tree"></app-page-header>
-
-    <mat-card>
-      <mat-card-content>
-        <mat-tab-group (selectedTabChange)="onTabChange($event.index)">
-          <mat-tab label="My Tasks ({{ myTasks().length }})"></mat-tab>
-          <mat-tab label="All Workflows"></mat-tab>
-        </mat-tab-group>
-
-        @if (isLoading()) {
-          <app-loading-spinner message="Loading workflows..."></app-loading-spinner>
-        } @else if (displayedWorkflows().length === 0) {
-          <app-empty-state icon="account_tree" [title]="selectedTab === 0 ? 'No pending tasks' : 'No workflows'" [message]="selectedTab === 0 ? 'You have no workflows awaiting your approval' : 'No workflows have been started'"></app-empty-state>
-        } @else {
-          <table mat-table [dataSource]="displayedWorkflows()" class="full-width">
-            <ng-container matColumnDef="type">
-              <th mat-header-cell *matHeaderCellDef>Type</th>
-              <td mat-cell *matCellDef="let workflow">{{ workflow.workflowType }}</td>
-            </ng-container>
-            <ng-container matColumnDef="stage">
-              <th mat-header-cell *matHeaderCellDef>Current Stage</th>
-              <td mat-cell *matCellDef="let workflow">{{ workflow.currentStage }}</td>
-            </ng-container>
-            <ng-container matColumnDef="initiatedBy">
-              <th mat-header-cell *matHeaderCellDef>Initiated By</th>
-              <td mat-cell *matCellDef="let workflow">{{ workflow.initiatedByName || workflow.initiatedBy }}</td>
-            </ng-container>
-            <ng-container matColumnDef="status">
-              <th mat-header-cell *matHeaderCellDef>Status</th>
-              <td mat-cell *matCellDef="let workflow">
-                <app-status-badge [label]="workflow.finalStatus || 'In Progress'" [type]="getStatusType(workflow)"></app-status-badge>
-              </td>
-            </ng-container>
-            <ng-container matColumnDef="actions">
-              <th mat-header-cell *matHeaderCellDef></th>
-              <td mat-cell *matCellDef="let workflow">
-                <button mat-icon-button [matMenuTriggerFor]="menu" [disabled]="workflow.isCompleted"><mat-icon>more_vert</mat-icon></button>
-                <mat-menu #menu="matMenu">
-                  <button mat-menu-item (click)="approve(workflow)"><mat-icon>check</mat-icon><span>Approve</span></button>
-                  <button mat-menu-item (click)="reject(workflow)"><mat-icon>close</mat-icon><span>Reject</span></button>
-                  <button mat-menu-item (click)="cancel(workflow)"><mat-icon color="warn">cancel</mat-icon><span>Cancel</span></button>
-                </mat-menu>
-              </td>
-            </ng-container>
-            <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-            <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
-          </table>
-        }
-      </mat-card-content>
-    </mat-card>
-  `,
-  styles: [`.full-width { width: 100%; } mat-tab-group { margin-bottom: 16px; }`]
+  templateUrl: './workflow-list.component.html',
+  styleUrl: './workflow-list.component.scss'
 })
 export class WorkflowListComponent implements OnInit {
   private readonly workflowService = inject(WorkflowService);

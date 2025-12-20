@@ -18,66 +18,8 @@ import { Media, MediaType } from '../../models';
     FormsModule, MatCardModule, MatButtonModule, MatIconModule, MatMenuModule,
     MatFormFieldModule, MatInputModule, PageHeaderComponent, LoadingSpinnerComponent, EmptyStateComponent
   ],
-  template: `
-    <app-page-header title="Media" subtitle="Manage media files" icon="perm_media">
-      <button mat-flat-button color="primary" (click)="fileInput.click()">
-        <mat-icon>cloud_upload</mat-icon>
-        Upload
-      </button>
-      <input #fileInput type="file" hidden (change)="onFileSelected($event)" multiple accept="image/*,video/*,.pdf">
-    </app-page-header>
-
-    <mat-card>
-      <mat-card-content>
-        <mat-form-field appearance="outline" class="media-list__search-field">
-          <mat-label>Search media</mat-label>
-          <input matInput [(ngModel)]="searchQuery" placeholder="Search by filename...">
-          <mat-icon matSuffix>search</mat-icon>
-        </mat-form-field>
-
-        @if (isLoading()) {
-          <app-loading-spinner message="Loading media..."></app-loading-spinner>
-        } @else if (filtered().length === 0) {
-          <app-empty-state icon="perm_media" title="No media found" message="Upload your first file" actionLabel="Upload" (action)="fileInput.click()"></app-empty-state>
-        } @else {
-          <div class="media-list__grid">
-            @for (media of filtered(); track media.mediaId) {
-              <mat-card class="media-list__card">
-                <div class="media-list__preview" [class.media-list__preview--image]="media.fileType === 'Image'">
-                  @if (media.thumbnailUrl) {
-                    <img [src]="media.thumbnailUrl" [alt]="media.fileName">
-                  } @else {
-                    <mat-icon>{{ getMediaIcon(media.fileType) }}</mat-icon>
-                  }
-                </div>
-                <mat-card-content>
-                  <p class="media-list__name">{{ media.fileName }}</p>
-                  <p class="media-list__info">{{ formatFileSize(media.fileSize) }}</p>
-                </mat-card-content>
-                <mat-card-actions>
-                  <button mat-icon-button (click)="download(media)"><mat-icon>download</mat-icon></button>
-                  <button mat-icon-button [matMenuTriggerFor]="menu"><mat-icon>more_vert</mat-icon></button>
-                  <mat-menu #menu="matMenu">
-                    <button mat-menu-item (click)="delete(media)"><mat-icon color="warn">delete</mat-icon><span>Delete</span></button>
-                  </mat-menu>
-                </mat-card-actions>
-              </mat-card>
-            }
-          </div>
-        }
-      </mat-card-content>
-    </mat-card>
-  `,
-  styles: [`
-    .media-list__search-field { width: 100%; max-width: 400px; margin-bottom: 16px; }
-    .media-list__grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px; }
-    .media-list__card { overflow: hidden; }
-    .media-list__preview { height: 150px; display: flex; align-items: center; justify-content: center; background: #f5f5f5; }
-    .media-list__preview--image img { width: 100%; height: 100%; object-fit: cover; }
-    .media-list__preview mat-icon { font-size: 48px; width: 48px; height: 48px; color: rgba(0,0,0,0.38); }
-    .media-list__name { font-size: 14px; margin: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .media-list__info { font-size: 12px; color: rgba(0,0,0,0.6); margin: 4px 0 0; }
-  `]
+  templateUrl: './media-list.component.html',
+  styleUrl: './media-list.component.scss'
 })
 export class MediaListComponent implements OnInit {
   private readonly mediaService = inject(MediaService);

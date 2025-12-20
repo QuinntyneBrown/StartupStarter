@@ -1,0 +1,77 @@
+<app-page-header
+  title="Dashboard"
+  subtitle="Welcome back, {{ userName() }}"
+  icon="dashboard">
+</app-page-header>
+
+@if (isLoading()) {
+  <app-loading-spinner message="Loading dashboard..."></app-loading-spinner>
+} @else {
+  <div class="dashboard__grid">
+    @for (card of cards(); track card.title) {
+      <mat-card class="dashboard__card" [style.border-left-color]="card.color">
+        <mat-card-content>
+          <div class="dashboard__card-icon" [style.background-color]="card.color + '20'" [style.color]="card.color">
+            <mat-icon>{{ card.icon }}</mat-icon>
+          </div>
+          <div class="dashboard__card-content">
+            <h3 class="dashboard__card-value">{{ card.value }}</h3>
+            <p class="dashboard__card-title">{{ card.title }}</p>
+          </div>
+          @if (card.route) {
+            <a mat-icon-button [routerLink]="card.route" class="dashboard__card-action">
+              <mat-icon>arrow_forward</mat-icon>
+            </a>
+          }
+        </mat-card-content>
+      </mat-card>
+    }
+  </div>
+
+  <div class="dashboard__sections">
+    <mat-card class="dashboard__section-card">
+      <mat-card-header>
+        <mat-card-title>Recent Activity</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="dashboard__activity-list">
+          @for (activity of recentActivity(); track activity.id) {
+            <div class="dashboard__activity-item">
+              <mat-icon [style.color]="activity.color">{{ activity.icon }}</mat-icon>
+              <div class="dashboard__activity-content">
+                <span class="dashboard__activity-message">{{ activity.message }}</span>
+                <span class="dashboard__activity-time">{{ activity.time }}</span>
+              </div>
+            </div>
+          }
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="dashboard__section-card">
+      <mat-card-header>
+        <mat-card-title>Quick Actions</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="dashboard__quick-actions">
+          <button mat-stroked-button routerLink="/users">
+            <mat-icon>person_add</mat-icon>
+            Invite User
+          </button>
+          <button mat-stroked-button routerLink="/content">
+            <mat-icon>add_circle</mat-icon>
+            Create Content
+          </button>
+          <button mat-stroked-button routerLink="/workflows">
+            <mat-icon>account_tree</mat-icon>
+            View Workflows
+          </button>
+          <button mat-stroked-button routerLink="/audit">
+            <mat-icon>history</mat-icon>
+            Audit Logs
+          </button>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+}

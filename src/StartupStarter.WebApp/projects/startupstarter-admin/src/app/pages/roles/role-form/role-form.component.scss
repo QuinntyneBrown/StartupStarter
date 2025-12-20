@@ -1,0 +1,5 @@
+.full-width { width: 100%; }
+mat-card { max-width: 800px; }
+.form-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 24px; }
+.permissions-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 8px; padding: 16px 0; }
+h3 { margin: 24px 0 16px; }

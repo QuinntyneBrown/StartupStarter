@@ -1,0 +1,54 @@
+.system__metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.system__status-indicator {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 24px;
+  font-weight: 500;
+}
+
+.system__status-indicator.healthy {
+  color: #4caf50;
+}
+
+.system__status-indicator.degraded {
+  color: #ff9800;
+}
+
+.system__status-indicator.unhealthy {
+  color: #f44336;
+}
+
+.system__uptime {
+  color: rgba(0,0,0,0.6);
+  margin-top: 8px;
+}
+
+.system__metric {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(0,0,0,0.1);
+}
+
+.system__resource {
+  display: grid;
+  grid-template-columns: 80px 1fr 50px;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 0;
+}
+
+.system__tab-content {
+  padding: 16px 0;
+}
+
+.system__table {
+  width: 100%;
+}

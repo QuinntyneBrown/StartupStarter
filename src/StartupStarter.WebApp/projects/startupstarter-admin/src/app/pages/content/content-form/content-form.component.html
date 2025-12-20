@@ -1,0 +1,41 @@
+<app-page-header [title]="isEditMode() ? 'Edit Content' : 'New Content'" icon="article"></app-page-header>
+@if (isLoading()) {
+  <app-loading-spinner></app-loading-spinner>
+} @else {
+  <mat-card>
+    <mat-card-content>
+      <form [formGroup]="form" (ngSubmit)="onSubmit()">
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Title</mat-label>
+          <input matInput formControlName="title">
+        </mat-form-field>
+        @if (!isEditMode()) {
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Content Type</mat-label>
+            <mat-select formControlName="contentType">
+              @for (type of contentTypes; track type) {
+                <mat-option [value]="type">{{ type }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+        }
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Body</mat-label>
+          <textarea matInput formControlName="body" rows="10"></textarea>
+        </mat-form-field>
+        @if (isEditMode()) {
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Change Description</mat-label>
+            <input matInput formControlName="changeDescription" placeholder="Describe your changes">
+          </mat-form-field>
+        }
+        <div class="form-actions">
+          <button mat-button type="button" (click)="cancel()">Cancel</button>
+          <button mat-flat-button color="primary" type="submit" [disabled]="isSaving() || form.invalid">
+            {{ isSaving() ? 'Saving...' : (isEditMode() ? 'Update' : 'Create') }}
+          </button>
+        </div>
+      </form>
+    </mat-card-content>
+  </mat-card>
+}
