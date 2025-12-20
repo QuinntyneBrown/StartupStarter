@@ -46,7 +46,13 @@
 - the shall optionally have MediatR behaviours in a folder called Behaviours
 
 * Frontend Speficiations
-- the frontend shall be named {system}.WebApp
+- components files in the frontend shall be seperate.
+    - a file for html
+    - a file for scss
+    - a file for typescript
+- the e2e folder shall be located in the src folder within the project folder
+    - src/{system}.WebApp/projects/{system}/src/e2e    
+- the frontend shall be named {system}.WebApp (src\{system}.WebApp)
 - the frontend shall be a workspace with projects
 - the frontend project shall be called {system} if not an admin frontend
 - the frontend project shall be called {system}-admin if the it's an admin frontend
@@ -75,5 +81,3 @@
 - the system shall create barrels for every folder and export typescript code except test code.
 - the system shall strictly adhere to Material 3 guideline and not use any colors that are not defined in the angular material theme
 
-
-Create the Admin Frontend project as per the design is docs/features
