@@ -1,0 +1,54 @@
+@startuml Create Account Sequence Diagram
+
+actor "User/Admin" as User
+participant "API Controller" as Controller
+participant "CreateAccountHandler" as Handler
+participant "IStartupStarterContext" as Context
+participant "Account\n(Aggregate Root)" as Account
+database "Database" as DB
+
+User -> Controller: POST /api/accounts\n{CreateAccountDto}
+activate Controller
+
+Controller -> Handler: CreateAccountCommand
+activate Handler
+
+Handler -> Account: new Account(\n  accountName,\n  accountType,\n  ownerUserId,\n  subscriptionTier,\n  createdBy\n)
+activate Account
+
+Account -> Account: Validate business rules
+note right
+  - AccountName not empty
+  - OwnerUserId exists
+  - SubscriptionTier valid
+end note
+
+Account -> Account: RaiseDomainEvent(\n  AccountCreatedEvent)
+Account --> Handler: Account instance
+deactivate Account
+
+Handler -> Context: Accounts.Add(account)
+activate Context
+Context --> Handler
+deactivate Context
+
+Handler -> Context: SaveChangesAsync()
+activate Context
+Context -> DB: INSERT INTO Accounts
+DB --> Context: Success
+Context --> Handler
+deactivate Context
+
+Handler -> Handler: Publish Domain Events
+note right
+  AccountCreatedEvent published
+  to event bus for event handlers
+end note
+
+Handler --> Controller: AccountDto
+deactivate Handler
+
+Controller --> User: 201 Created\n{AccountDto}
+deactivate Controller
+
+@enduml

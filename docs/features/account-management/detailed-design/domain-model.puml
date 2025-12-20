@@ -1,0 +1,74 @@
+@startuml Account Management Domain Model
+
+!define AGGREGATE_ROOT_COLOR #FFD700
+!define ENTITY_COLOR #87CEEB
+!define VALUE_OBJECT_COLOR #90EE90
+!define ENUM_COLOR #FFB6C1
+
+package "AccountAggregate" <<Rectangle>> {
+
+  class Account <<Aggregate Root>> AGGREGATE_ROOT_COLOR {
+    - AccountId: string
+    - AccountName: string
+    - AccountType: AccountType
+    - OwnerUserId: string
+    - SubscriptionTier: string
+    - Status: AccountStatus
+    - CreatedAt: DateTime
+    - UpdatedAt: DateTime?
+    - DeletedAt: DateTime?
+    - SuspendedAt: DateTime?
+    - SuspensionReason: string
+    - SuspensionDuration: TimeSpan?
+    --
+    + UpdateAccountInfo(accountName, updatedBy)
+    + ChangeSubscriptionTier(newTier, changedBy)
+    + TransferOwnership(newOwnerUserId, transferredBy)
+    + Suspend(reason, suspendedBy, duration)
+    + Reactivate(reactivatedBy)
+    + Delete(deletedBy, deletionType)
+    + UpdateSettings(category, settings, updatedBy)
+    + AddProfile(profileId, profileName, createdBy)
+    + RemoveProfile(profileId, profileName, removedBy)
+  }
+
+  class AccountSettings <<Entity>> ENTITY_COLOR {
+    - AccountSettingsId: string
+    - AccountId: string
+    - Category: string
+    - SettingsJson: string
+    - CreatedAt: DateTime
+    - UpdatedAt: DateTime?
+  }
+
+  enum AccountType <<Enumeration>> ENUM_COLOR {
+    Individual
+    Team
+    Enterprise
+  }
+
+  enum AccountStatus <<Enumeration>> ENUM_COLOR {
+    Active
+    Suspended
+    Deleted
+  }
+
+  enum DeletionType <<Enumeration>> ENUM_COLOR {
+    SoftDelete
+    HardDelete
+  }
+
+  Account "1" *-- "0..*" AccountSettings : contains
+  Account ..> AccountType : uses
+  Account ..> AccountStatus : uses
+  Account ..> DeletionType : uses
+}
+
+note right of Account
+  Aggregate Root for Account Management
+  - Owns AccountSettings
+  - Publishes domain events
+  - Enforces business rules
+end note
+
+@enduml

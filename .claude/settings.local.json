@@ -14,7 +14,11 @@
       "Bash(move \"docs\\events\\system.md\" \"docs\\features\\system\\events.md\")",
       "Bash(move \"docs\\events\\user-management.md\" \"docs\\features\\user-management\\events.md\")",
       "Bash(move \"docs\\events\\workflow.md\" \"docs\\features\\workflow\\events.md\")",
-      "Bash(mv:*)"
+      "Bash(mv:*)",
+      "Bash(dotnet new:*)",
+      "Bash(dotnet sln:*)",
+      "Bash(dotnet add package:*)",
+      "Bash(dotnet build:*)"
     ],
     "deny": [],
     "ask": []
