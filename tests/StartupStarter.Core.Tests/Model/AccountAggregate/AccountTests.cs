@@ -22,7 +22,7 @@ public class AccountTests
         var account = new Account(
             ValidAccountId,
             ValidAccountName,
-            AccountType.Business,
+            AccountType.Enterprise,
             ValidOwnerUserId,
             ValidSubscriptionTier,
             ValidCreatedBy);
@@ -30,7 +30,7 @@ public class AccountTests
         // Assert
         account.AccountId.Should().Be(ValidAccountId);
         account.AccountName.Should().Be(ValidAccountName);
-        account.AccountType.Should().Be(AccountType.Business);
+        account.AccountType.Should().Be(AccountType.Enterprise);
         account.OwnerUserId.Should().Be(ValidOwnerUserId);
         account.SubscriptionTier.Should().Be(ValidSubscriptionTier);
         account.Status.Should().Be(AccountStatus.Active);
@@ -47,7 +47,7 @@ public class AccountTests
         var account = new Account(
             ValidAccountId,
             ValidAccountName,
-            AccountType.Business,
+            AccountType.Enterprise,
             ValidOwnerUserId,
             ValidSubscriptionTier,
             ValidCreatedBy);
@@ -58,7 +58,7 @@ public class AccountTests
         domainEvent.Should().NotBeNull();
         domainEvent!.AccountId.Should().Be(ValidAccountId);
         domainEvent.AccountName.Should().Be(ValidAccountName);
-        domainEvent.AccountType.Should().Be(AccountType.Business);
+        domainEvent.AccountType.Should().Be(AccountType.Enterprise);
         domainEvent.OwnerUserId.Should().Be(ValidOwnerUserId);
         domainEvent.SubscriptionTier.Should().Be(ValidSubscriptionTier);
         domainEvent.CreatedBy.Should().Be(ValidCreatedBy);
@@ -74,7 +74,7 @@ public class AccountTests
         var act = () => new Account(
             accountId!,
             ValidAccountName,
-            AccountType.Business,
+            AccountType.Enterprise,
             ValidOwnerUserId,
             ValidSubscriptionTier,
             ValidCreatedBy);
@@ -93,7 +93,7 @@ public class AccountTests
         var act = () => new Account(
             ValidAccountId,
             accountName!,
-            AccountType.Business,
+            AccountType.Enterprise,
             ValidOwnerUserId,
             ValidSubscriptionTier,
             ValidCreatedBy);
@@ -112,7 +112,7 @@ public class AccountTests
         var act = () => new Account(
             ValidAccountId,
             ValidAccountName,
-            AccountType.Business,
+            AccountType.Enterprise,
             ownerUserId!,
             ValidSubscriptionTier,
             ValidCreatedBy);
@@ -131,7 +131,7 @@ public class AccountTests
         var act = () => new Account(
             ValidAccountId,
             ValidAccountName,
-            AccountType.Business,
+            AccountType.Enterprise,
             ValidOwnerUserId,
             subscriptionTier!,
             ValidCreatedBy);
@@ -377,7 +377,7 @@ public class AccountTests
         account.ClearDomainEvents();
 
         // Act
-        account.Delete("admin", DeletionType.Soft);
+        account.Delete("admin", DeletionType.SoftDelete);
 
         // Assert
         account.Status.Should().Be(AccountStatus.Deleted);
@@ -392,7 +392,7 @@ public class AccountTests
         account.ClearDomainEvents();
 
         // Act
-        account.Delete("admin", DeletionType.Hard);
+        account.Delete("admin", DeletionType.HardDelete);
 
         // Assert
         account.DomainEvents.Should().ContainSingle();
@@ -400,7 +400,7 @@ public class AccountTests
         domainEvent.Should().NotBeNull();
         domainEvent!.AccountId.Should().Be(account.AccountId);
         domainEvent.DeletedBy.Should().Be("admin");
-        domainEvent.DeletionType.Should().Be(DeletionType.Hard);
+        domainEvent.DeletionType.Should().Be(DeletionType.HardDelete);
     }
 
     #endregion
@@ -496,7 +496,7 @@ public class AccountTests
         return new Account(
             ValidAccountId,
             ValidAccountName,
-            AccountType.Business,
+            AccountType.Enterprise,
             ValidOwnerUserId,
             ValidSubscriptionTier,
             ValidCreatedBy);

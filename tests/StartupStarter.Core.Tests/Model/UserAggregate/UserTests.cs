@@ -445,12 +445,12 @@ public class UserTests
         user.ClearDomainEvents();
 
         // Act
-        user.Delete("admin", DeletionType.Soft, "User requested deletion");
+        user.Delete("admin", DeletionType.SoftDelete, "User requested deletion");
 
         // Assert
         user.Status.Should().Be(UserStatus.Deleted);
         user.DeletedAt.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(1));
-        user.DeletionType.Should().Be(DeletionType.Soft);
+        user.DeletionType.Should().Be(DeletionType.SoftDelete);
     }
 
     [Fact]
@@ -461,7 +461,7 @@ public class UserTests
         user.ClearDomainEvents();
 
         // Act
-        user.Delete("admin", DeletionType.Hard, "GDPR request");
+        user.Delete("admin", DeletionType.HardDelete, "GDPR request");
 
         // Assert
         user.DomainEvents.Should().ContainSingle();
@@ -469,7 +469,7 @@ public class UserTests
         domainEvent.Should().NotBeNull();
         domainEvent!.UserId.Should().Be(user.UserId);
         domainEvent.DeletedBy.Should().Be("admin");
-        domainEvent.DeletionType.Should().Be(DeletionType.Hard);
+        domainEvent.DeletionType.Should().Be(DeletionType.HardDelete);
         domainEvent.Reason.Should().Be("GDPR request");
     }
 

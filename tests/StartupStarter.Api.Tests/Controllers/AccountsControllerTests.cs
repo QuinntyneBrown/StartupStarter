@@ -31,7 +31,7 @@ public class AccountsControllerTests : IClassFixture<CustomWebApplicationFactory
         var command = new CreateAccountCommand
         {
             AccountName = "Test Company",
-            AccountType = AccountType.Business,
+            AccountType = AccountType.Enterprise,
             OwnerUserId = "owner-123",
             SubscriptionTier = "Premium",
             CreatedBy = "admin"
@@ -46,7 +46,7 @@ public class AccountsControllerTests : IClassFixture<CustomWebApplicationFactory
         var result = await response.Content.ReadFromJsonAsync<AccountDto>();
         result.Should().NotBeNull();
         result!.AccountName.Should().Be("Test Company");
-        result.AccountType.Should().Be(AccountType.Business.ToString());
+        result.AccountType.Should().Be(AccountType.Enterprise.ToString());
         result.OwnerUserId.Should().Be("owner-123");
         result.SubscriptionTier.Should().Be("Premium");
         result.Status.Should().Be(AccountStatus.Active.ToString());
@@ -76,7 +76,7 @@ public class AccountsControllerTests : IClassFixture<CustomWebApplicationFactory
 
     [Theory]
     [InlineData(AccountType.Individual)]
-    [InlineData(AccountType.Business)]
+    [InlineData(AccountType.Enterprise)]
     [InlineData(AccountType.Enterprise)]
     public async Task CreateAccount_WithDifferentTypes_ShouldSucceed(AccountType accountType)
     {
@@ -116,7 +116,7 @@ public class AccountsControllerTests : IClassFixture<CustomWebApplicationFactory
         var account = new Account(
             accountId,
             "Get Test Company",
-            AccountType.Business,
+            AccountType.Enterprise,
             "owner-123",
             "Premium",
             "admin");
@@ -157,7 +157,7 @@ public class AccountsControllerTests : IClassFixture<CustomWebApplicationFactory
         var account = new Account(
             accountId,
             "Suspended Company",
-            AccountType.Business,
+            AccountType.Enterprise,
             "owner-123",
             "Premium",
             "admin");
@@ -189,7 +189,7 @@ public class AccountsControllerTests : IClassFixture<CustomWebApplicationFactory
         var account = new Account(
             accountId,
             "Upgraded Company",
-            AccountType.Business,
+            AccountType.Enterprise,
             "owner-123",
             "Basic",
             "admin");

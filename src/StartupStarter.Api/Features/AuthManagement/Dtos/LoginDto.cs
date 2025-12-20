@@ -1,3 +1,5 @@
+using StartupStarter.Api.Features.UserManagement.Dtos;
+
 namespace StartupStarter.Api.Features.AuthManagement.Dtos;
 
 public class LoginDto
@@ -11,4 +13,5 @@ public class LoginDto
     public string AccountId { get; set; } = string.Empty;
     public List<string> Roles { get; set; } = new();
     public DateTime ExpiresAt { get; set; }
+    public UserDto User { get; set; } = null!;
 }

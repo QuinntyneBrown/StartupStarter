@@ -2,6 +2,7 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using StartupStarter.Api.Authentication;
 using StartupStarter.Api.Features.AuthManagement.Dtos;
+using StartupStarter.Api.Features.UserManagement.Dtos;
 using StartupStarter.Core;
 using StartupStarter.Core.Model.AuthenticationAggregate.Entities;
 using StartupStarter.Core.Model.AuthenticationAggregate.Enums;
@@ -132,7 +133,8 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, LoginDto?>
             LastName = user.LastName,
             AccountId = user.AccountId,
             Roles = userRoles,
-            ExpiresAt = expiresAt
+            ExpiresAt = expiresAt,
+            User =  user.ToDto()
         };
     }
 }

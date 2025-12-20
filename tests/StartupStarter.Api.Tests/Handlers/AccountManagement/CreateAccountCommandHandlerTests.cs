@@ -16,7 +16,7 @@ public class CreateAccountCommandHandlerTests
         var command = new CreateAccountCommand
         {
             AccountName = "Test Company",
-            AccountType = AccountType.Business,
+            AccountType = AccountType.Enterprise,
             OwnerUserId = "owner-123",
             SubscriptionTier = "Premium",
             CreatedBy = "admin"
@@ -28,7 +28,7 @@ public class CreateAccountCommandHandlerTests
         // Assert
         result.Should().NotBeNull();
         result.AccountName.Should().Be("Test Company");
-        result.AccountType.Should().Be(AccountType.Business.ToString());
+        result.AccountType.Should().Be(AccountType.Enterprise.ToString());
         result.OwnerUserId.Should().Be("owner-123");
         result.SubscriptionTier.Should().Be("Premium");
         result.Status.Should().Be(AccountStatus.Active.ToString());
@@ -71,7 +71,7 @@ public class CreateAccountCommandHandlerTests
         var command1 = new CreateAccountCommand
         {
             AccountName = "Company One",
-            AccountType = AccountType.Business,
+            AccountType = AccountType.Enterprise,
             OwnerUserId = "owner-1",
             SubscriptionTier = "Premium",
             CreatedBy = "admin"
@@ -79,7 +79,7 @@ public class CreateAccountCommandHandlerTests
         var command2 = new CreateAccountCommand
         {
             AccountName = "Company Two",
-            AccountType = AccountType.Business,
+            AccountType = AccountType.Enterprise,
             OwnerUserId = "owner-2",
             SubscriptionTier = "Premium",
             CreatedBy = "admin"
@@ -95,7 +95,7 @@ public class CreateAccountCommandHandlerTests
 
     [Theory]
     [InlineData(AccountType.Individual)]
-    [InlineData(AccountType.Business)]
+    [InlineData(AccountType.Enterprise)]
     [InlineData(AccountType.Enterprise)]
     public async Task Handle_WithDifferentAccountTypes_ShouldCreateCorrectType(AccountType accountType)
     {
@@ -128,7 +128,7 @@ public class CreateAccountCommandHandlerTests
         var command = new CreateAccountCommand
         {
             AccountName = "",
-            AccountType = AccountType.Business,
+            AccountType = AccountType.Enterprise,
             OwnerUserId = "owner-123",
             SubscriptionTier = "Premium",
             CreatedBy = "admin"
@@ -148,7 +148,7 @@ public class CreateAccountCommandHandlerTests
         var command = new CreateAccountCommand
         {
             AccountName = "Valid Company",
-            AccountType = AccountType.Business,
+            AccountType = AccountType.Enterprise,
             OwnerUserId = "",
             SubscriptionTier = "Premium",
             CreatedBy = "admin"
@@ -168,7 +168,7 @@ public class CreateAccountCommandHandlerTests
         var command = new CreateAccountCommand
         {
             AccountName = "Valid Company",
-            AccountType = AccountType.Business,
+            AccountType = AccountType.Enterprise,
             OwnerUserId = "owner-123",
             SubscriptionTier = "",
             CreatedBy = "admin"
@@ -188,7 +188,7 @@ public class CreateAccountCommandHandlerTests
         var command = new CreateAccountCommand
         {
             AccountName = "Time Test Company",
-            AccountType = AccountType.Business,
+            AccountType = AccountType.Enterprise,
             OwnerUserId = "owner-123",
             SubscriptionTier = "Premium",
             CreatedBy = "admin"
@@ -212,7 +212,7 @@ public class CreateAccountCommandHandlerTests
         var command = new CreateAccountCommand
         {
             AccountName = "Cancel Test",
-            AccountType = AccountType.Business,
+            AccountType = AccountType.Enterprise,
             OwnerUserId = "owner-123",
             SubscriptionTier = "Premium",
             CreatedBy = "admin"
