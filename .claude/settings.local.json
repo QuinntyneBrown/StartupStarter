@@ -20,7 +20,9 @@
       "Bash(dotnet add package:*)",
       "Bash(dotnet build:*)",
       "Bash(findstr:*)",
-      "Bash(dotnet ef migrations:*)"
+      "Bash(dotnet ef migrations:*)",
+      "Bash(taskkill //F //PID 21712)",
+      "Bash(ng serve:*)"
     ],
     "deny": [],
     "ask": []
